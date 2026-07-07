@@ -126,6 +126,10 @@ namespace BadMovieClues.UI
 
         private void SetStatus(string status)
         {
+            // Won/Lost fires synchronously from inside Guess(), before the
+            // caller's own RefreshBlanks() runs - without this, the letter
+            // that just won the round never visually appears.
+            RefreshBlanks();
             descriptionText.text = $"{_controller.CurrentLevel.BadDescription}\n\n{status}";
             foreach (var button in _letterButtons.Values) button.interactable = false;
             RefreshHintButtons();
