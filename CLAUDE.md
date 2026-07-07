@@ -136,3 +136,20 @@ each has its own verification step.
   M3, once there's an actual Play Mode scene to test in.
 - No bootstrap scene or composition-root script exists yet — that's M3, after
   the pure Puzzle logic (M2).
+
+## Setup status (M2)
+- `PuzzleState` implemented in `BadMovieClues.Puzzle` — pure C#, no
+  MonoBehaviour, no UnityEngine reference at all (the asmdef has
+  `noEngineReferences: true`, so this is compiler-enforced, not just
+  convention). Only letters are guessable; spaces/punctuation/digits are
+  revealed from the start. Case-insensitive guessing, `Won`/`Lost` events
+  fire exactly once, guesses after game-over or repeat guesses are rejected
+  without changing state, and a title with zero letters (e.g. `"1984"`) is
+  trivially won at construction.
+- 14 EditMode tests in `PuzzleStateTests.cs` cover masking, repeated-letter
+  reveals, case-insensitivity, punctuation/digit handling, a sequel title
+  with a digit, win/loss event firing exactly once, post-game-over guesses,
+  and constructor argument validation. All 19 project tests passing.
+- Next is M3: wire `GameController` + a bootstrap scene around
+  `BundledContentProvider` + `PuzzleState` for a minimal playable loop in
+  the editor (no economy, no juice yet).
