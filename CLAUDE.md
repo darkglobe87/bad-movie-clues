@@ -101,8 +101,38 @@ each has its own verification step.
   `com.kyrylokuzyk` in `Packages/manifest.json`. TextMeshPro needs no separate
   package — accept the "Import TMP Essential Resources" prompt the first time
   a TMP component is used in a scene.
-- `Assets/Editor/PackageInstaller.cs` is a throwaway batch-mode helper used
-  once to resolve package versions; safe to delete once packages are
-  confirmed present in `Packages/manifest.json` / `packages-lock.json`.
-- No bootstrap scene or composition-root script exists yet — that's the next
-  M0 step, followed by M1 (content model + authoring tool).
+- `Assets/Editor/PackageInstaller.cs` was a throwaway batch-mode helper used
+  once to resolve package versions; already deleted.
+
+## Setup status (M1)
+- Data layer implemented: `LevelData`, `LevelCatalog`, `IContentProvider`,
+  `BundledContentProvider` (Newtonsoft JSON from `Resources/StarterCatalog`,
+  images via Addressables keyed by `ImageKey`, returned as `Sprite`).
+- `Assets/_Project/Content/StarterCatalog.json` moved to
+  `Assets/_Project/Content/Resources/StarterCatalog.json` so it loads via
+  `Resources.Load<TextAsset>` — this is the *bundled* catalog path; the
+  remote one (M6) will use a different provider behind the same interface.
+- `MovieAuthoringWindow` (`Bad Movie Clues > Movie Catalog Editor` menu) lets
+  you add/edit/delete movies and assign images; assigning an image
+  auto-registers it as Addressable via `AddressableImageUtility` (sets
+  Texture Type = Sprite, address = imageKey, group `BadMovieClues-Images`).
+  A "Sync All Images To Addressables" button re-runs that for every level.
+- The 7 already-matched curated images (jaws/et/shrek/toy_story/
+  lord_of_the_rings/matrix/pulp_fiction) are synced and Addressable now.
+  The 2 `_unmatched_*` images still need a human to assign them to a movie
+  via the authoring tool.
+- EditMode tests in `LevelCatalogTests.cs` cover top-level-array parsing
+  (the reason Newtonsoft is used over `JsonUtility`), optional-field
+  defaults, `LevelCatalog.FindById`, and a regression check that the bundled
+  catalog still has all 36 unique movies with the expected image keys. All
+  passing (`Unity.exe -runTests -testPlatform EditMode`).
+- Gotcha worth remembering: `BadMovieClues.Tests.asmdef` has
+  `overrideReferences: true`, so precompiled plugin DLLs (Newtonsoft.Json,
+  nunit) must be listed by filename in `precompiledReferences`, not just by
+  name in `references` — the latter alone silently fails to resolve.
+- Addressables runtime loading (`Addressables.LoadAssetAsync<Sprite>`) is
+  *not* exercised by EditMode tests — Addressables needs a running/Play Mode
+  context to initialize reliably. First real verification of that path is
+  M3, once there's an actual Play Mode scene to test in.
+- No bootstrap scene or composition-root script exists yet — that's M3, after
+  the pure Puzzle logic (M2).

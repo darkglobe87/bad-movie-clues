@@ -7,7 +7,8 @@
         "BadMovieClues.Puzzle",
         "BadMovieClues.Economy",
         "BadMovieClues.Data",
-        "BadMovieClues.Services"
+        "BadMovieClues.Services",
+        "Newtonsoft.Json"
     ],
     "includePlatforms": [
         "Editor"
@@ -16,7 +17,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": true,
     "precompiledReferences": [
-        "nunit.framework.dll"
+        "nunit.framework.dll",
+        "Newtonsoft.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [

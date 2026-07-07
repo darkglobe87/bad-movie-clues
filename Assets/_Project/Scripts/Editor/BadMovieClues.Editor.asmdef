@@ -4,7 +4,10 @@
     "references": [
         "BadMovieClues.Data",
         "BadMovieClues.Core",
-        "Newtonsoft.Json"
+        "Newtonsoft.Json",
+        "Unity.Addressables",
+        "Unity.Addressables.Editor",
+        "Unity.ResourceManager"
     ],
     "includePlatforms": [
         "Editor"
