@@ -1,22 +1,19 @@
 using System;
 using BadMovieClues.Core;
-using BadMovieClues.Data;
 using BadMovieClues.Economy;
-using BadMovieClues.Services;
 using UnityEngine;
 
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Composition root: constructs the content provider, economy services,
-    /// and GameController, and wires them to the view. Lives in UI (not
-    /// Core) so Core never depends on UI - UI is the one layer allowed to
-    /// depend on everything else.
+    /// Per-gameplay-scene composition root: pulls app-lifetime services from
+    /// the persistent AppRoot (constructed once, survives scene changes)
+    /// instead of building its own, and constructs only the per-round
+    /// GameController. Lives in UI (not Core) so Core never depends on UI.
     /// </summary>
     public class GameBootstrap : MonoBehaviour
     {
         [SerializeField] private GameHud hud;
-        [SerializeField] private GameConfig config;
 
         private async Awaitable Start()
         {
@@ -27,14 +24,11 @@ namespace BadMovieClues.UI
             // is a permanent safety net against exactly that.
             try
             {
-                IContentProvider contentProvider = new BundledContentProvider();
-                ISaveService saveService = new LocalJsonSaveService();
-                ICurrencyService currency = new CurrencyService(saveService, config.StartingBalance);
-                var hintService = new HintService(currency, config);
-                IAudioService audioService = new SimpleAudioService();
+                var app = AppRoot.Instance;
+                var hintService = new HintService(app.Currency, app.Config);
 
-                var controller = new GameController(contentProvider, currency, hintService, config);
-                hud.Bind(controller, audioService);
+                var controller = new GameController(app.ContentProvider, app.Currency, hintService, app.Config);
+                hud.Bind(controller, app.AudioService);
                 await controller.LoadLevelAsync(0);
             }
             catch (Exception e)

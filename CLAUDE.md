@@ -466,3 +466,78 @@ tried first and hit a real, current dead end worth remembering:
 - Next is M8: split `GameBootstrap` into a persistent `AppRoot` +
   `GameplayBootstrap`, add `ScreenNavigator`, create `MainMenu.unity` -
   the riskiest milestone in this pass per the plan, isolate it.
+
+## Setup status (M8)
+- `AppRoot` (UI asmdef): persistent (`DontDestroyOnLoad`) composition root
+  for app-lifetime services (`ISaveService`, `ICurrencyService`,
+  `GameConfig`, `IContentProvider`, `IAudioService`). Constructed via
+  `[RuntimeInitializeOnLoadMethod(BeforeSceneLoad)]` rather than being
+  placed in a scene - this means it exists before ANY scene's own Awake/
+  Start runs, regardless of which scene happens to be first. Deliberate
+  choice: M10 will insert a `Splash` scene ahead of `MainMenu` as the new
+  first scene, and this way nothing about `AppRoot` needs to move/be
+  re-wired when that happens.
+- Because `AppRoot` is constructed purely in code (no scene placement), it
+  can't have a `[SerializeField]` reference to `GameConfig` wired via the
+  Inspector like the old `GameBootstrap` did - so `GameConfig.asset` moved
+  to `Assets/_Project/Content/Resources/GameConfig.asset` and is loaded via
+  `Resources.Load<GameConfig>("GameConfig")` instead (same mechanism
+  `StarterCatalog.json` already used). Verified this resolves correctly
+  post-move via a throwaway script before trusting it - would have been
+  the exact same failure mode as the M6 null-`config` bug otherwise.
+- `ScreenNavigator` (UI asmdef): also spun up by `AppRoot`'s bootstrap
+  method, same persistent GameObject tree. Wraps `SceneManager.LoadSceneAsync`
+  with a simple black-fade `CanvasGroup` (a `sortingOrder: 1000` overlay
+  canvas it builds itself, so it always draws on top of scene-local
+  canvases) and the same Awaitable try/catch safety net as `GameBootstrap`.
+  **Real API gotcha avoided by verifying first, not guessing:** confirmed
+  via Unity's own docs that `SceneManager.LoadSceneAsync` returns a plain
+  `AsyncOperation`, not an `Awaitable` - Unity 6 did *not* add an
+  Awaitable-returning overload for scene loading, unlike some other APIs.
+  Used the same manual `while (!operation.isDone) await Awaitable.NextFrameAsync();`
+  polling pattern `BundledContentProvider` already used, rather than
+  assume an unverified bridge existed. Separately confirmed PrimeTween
+  `Tween`s genuinely are directly awaitable (`await Tween.Alpha(...)`) -
+  that one *did* work as hoped.
+- `GameBootstrap` (renamed from constructing its own services to pulling
+  them off `AppRoot.Instance`) - **kept the class name unchanged**
+  rather than renaming to `GameplayBootstrap` as the plan suggested,
+  specifically to avoid the risk of a MonoBehaviour class rename breaking
+  the scene's existing serialized component reference, in a milestone
+  explicitly flagged as "isolate the risk." The functional split (thin
+  per-scene bootstrap pulling from a persistent root) is what actually
+  mattered, not the name.
+- `NavigateButton` (new, tiny, reusable): a button + a target scene name,
+  calls `ScreenNavigator.Instance.LoadScene(targetScene)` on click. Used
+  for both directions (Play: MainMenu -> Gameplay, Back: Gameplay ->
+  MainMenu) rather than writing two near-identical single-purpose scripts.
+- `Bootstrap.unity` renamed to `Gameplay.unity` via `AssetDatabase.RenameAsset`
+  (not a raw filesystem move) specifically to preserve its GUID - verified
+  directly by diffing the `.meta` file's guid before/after the rename
+  rather than assuming the rename tool behaved safely. `MainMenu.unity`
+  created fresh: Canvas, EventSystem, a title label, and one placeholder
+  "PLAY" button - deliberately plain/unstyled, since the real menu UI
+  (Level Select, Store, Settings, actual layout) is M10's job, not this
+  milestone's. Same placeholder-quality "< Menu" button added to a corner
+  of `Gameplay.unity`. Build Settings updated: `MainMenu.unity` first,
+  `Gameplay.unity` second.
+- **Verification gap, worth being honest about:** the plan called for "an
+  EditMode test that AppRoot composes its services exactly once," but
+  `[RuntimeInitializeOnLoadMethod]` genuinely does not fire during EditMode
+  test execution (EditMode tests never enter Play Mode) - so there's no
+  way to exercise the actual bootstrap trigger path in an automated
+  EditMode test, discovered only once actually trying to write one. What
+  *is* automated: clean compile, all 37 existing tests still green, and a
+  direct scripted check that `Resources.Load<GameConfig>` resolves
+  correctly post-move. What is **not** automated and needs a human:
+  whether `AppRoot`/`ScreenNavigator` actually behave correctly across a
+  real scene transition in Play Mode - this milestone's actual core claim
+  (services survive `MainMenu` -> `Gameplay` -> `MainMenu`) has not been
+  verified by anything but a human pressing Play. **Please open
+  `MainMenu.unity`, press Play, click PLAY, click < Menu, click PLAY
+  again, and confirm nothing errors and the coin balance shown in
+  Gameplay is the same both times you visit it** (it starts at 100 and
+  doesn't change unless you spend/earn, so seeing the same number twice is
+  the actual proof persistence survived the scene change).
+- Next is M9: build the dust-particle ambient background as a prefab on
+  `AppRoot`, so it renders behind every scene's UI with no duplication.
