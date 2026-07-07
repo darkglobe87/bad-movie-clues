@@ -371,3 +371,98 @@ between two copies of the same plan.
   milestone is layout/asset-shell only, no new logic).
 - Next is M7: import the Kenney UI Pack, populate `UITheme`, reskin the
   gameplay HUD, add minimal click-SFX via a new `IAudioService`.
+
+## Ad-hoc: cloud build pipeline (Unity Build Automation)
+Set up before M7's own on-device verification, since local IL2CPP Android
+builds are painfully slow on the dev laptop. GameCI (GitHub Actions) was
+tried first and hit a real, current dead end worth remembering:
+- `game-ci/unity-request-activation-file@v2` is **deprecated** ("no longer
+  supported" per its own workflow output).
+- Unity has **fully removed manual license activation for Personal
+  licenses** from `license.unity3d.com/manual` - not hidden-but-workable
+  via a browser trick (which used to be the documented workaround), just
+  gone. The portal now says to activate via signing into Unity Hub instead.
+- `unity-builder@v4` with only `UNITY_EMAIL`/`UNITY_PASSWORD` (no
+  `UNITY_LICENSE`) fails immediately with "Missing Unity License File and
+  no Serial was found" - so credential-only activation is **not** actually
+  sufficient for Personal despite some (outdated) blog posts claiming v4
+  no longer needs the `.ulf` workaround. This resolved a real, repeated
+  ambiguity in GameCI's own docs across multiple fetches.
+- **Given both the deprecated action and the portal removal, GameCI /
+  GitHub Actions is currently a dead end for a Unity Personal license.**
+  Pivoted to **Unity Build Automation** (Unity's own first-party cloud
+  build service, `cloud.unity.com` - DevOps > Build Automation) instead,
+  since it activates against the same Unity ID you're already signed into,
+  sidestepping the whole license-file problem entirely.
+- Setup: connect GitHub as source control (installs a Unity GitHub App
+  scoped to the repo), create an Android build target (**Target setup**,
+  not "Quick" - Quick doesn't expose the APK vs AAB choice), Linux builder,
+  Unity version `6000.3.19f1`, format APK. Android signing: **auto-generate
+  debug key** for now - fine for sideload testing, but a real Play Store
+  submission (M15) needs a proper release keystore generated once and kept
+  forever, not a fresh debug key each time.
+- Free tier requires starting a trial first (no payment details asked) -
+  confirmed via 100 free Linux build-minutes/month.
+- Repo: `github.com/darkglobe87/bad-movie-clues` (private). No GameCI
+  workflow files remain in the repo - removed once the Build Automation
+  path was confirmed working.
+- **Real bug found via the first successful on-device build, unrelated to
+  the build pipeline itself:** `GameHud.SetStatus` (called from the
+  `Won`/`Lost` events, which fire synchronously from inside
+  `PuzzleState.Guess()`) never called `RefreshBlanks()` - so the letter
+  that just won the round never visually appeared in the blanks row; the
+  player just saw "YOU WIN!" over an incomplete word. `OnLetterPressed`
+  skips its own `RefreshBlanks()` call once the puzzle is over, on the
+  (wrong) assumption that `SetStatus` already handled it. Fixed by calling
+  `RefreshBlanks()` as the first line of `SetStatus`. Caught only because
+  the owner actually played the real cloud-built APK on a real device -
+  this exact bug would not have been caught by any EditMode test, since it
+  requires observing rendered UI, and the M3-era GameController-direct
+  smoke tests never exercise `GameHud` at all.
+
+## Setup status (M7)
+- Downloaded the real [Kenney UI Pack](https://kenney.nl/assets/ui-pack)
+  (CC0, free, verified current) directly via `curl`, extracted, and
+  hand-picked 3 sprites from the **Grey** variant (neutral, so our own
+  palette tint via `Image.color` reads true instead of mixing with a
+  pre-saturated color) into `Assets/_Project/Content/UI/`: `button_normal.png`
+  (192x64, used for both hint buttons and keyboard keys), `tile.png` (64x64,
+  blanks-row tiles), `panel.png` (192x64, for future menu screens). License
+  kept alongside as `Kenney-UI-Pack-License.txt`. The pack also ships basic
+  click sounds - `click.ogg` reused directly for M7 rather than pulling in a
+  separate audio pack.
+- Sprites imported with `TextureImporterType.Sprite` + a 9-slice
+  `spriteBorder` (20px for the 192x64 sprites, 14px for the 64x64 tile) so
+  they scale to any button/tile size without corner distortion.
+- `IAudioService`/`SimpleAudioService` (Services): deliberately minimal -
+  `PlayOneShot(AudioClip)` + an `Enabled` flag, no AudioManager/mixer.
+  Uses `AudioSource.PlayClipAtPoint` so it stays a plain C# POCO (no
+  MonoBehaviour host needed) per Golden Rule 1.
+- `GameHud.Bind` signature changed to `Bind(GameController, IAudioService)`;
+  `GameBootstrap` now constructs a `SimpleAudioService` alongside its other
+  app-lifetime-ish services and passes it through. `PlaySquish` (previously
+  `static`) is now an instance method so it can trigger the click sound -
+  every existing call site (all letter keys + all three hint buttons)
+  gets the click sound for free with no other changes, since they already
+  all routed through `PlaySquish`.
+- **Blanks-row tiles restructured**: previously a bare `GameObject` with only
+  a `TextMeshProUGUI` (no background at all). Now each tile is a root
+  `GameObject` with `Image` (the themed background) plus a child `Label`
+  `GameObject` holding the TMP text stretched to fill - same parent/child
+  pattern the keyboard keys already used. `PlayPop` now animates the tile
+  **root** (so the background pops too, not just the text) - required
+  splitting the old `_tileLabels` array into separate `_tileLabels` (for
+  `.text`) and `_tileRoots` (for the pop animation) arrays.
+- Confirmed by direct code read before touching anything: `PlaySquish`/
+  `PlayPop` only ever touch `transform.localScale` - reskinning `Image`
+  sprites/colors was guaranteed not to interfere with any existing tween,
+  and it didn't.
+- Every theme-application call site guards `if (theme != null)` - if the
+  `UITheme` reference were ever unassigned, the game degrades to the old
+  plain-white look rather than throwing (matches the project's established
+  "don't hard-crash on a missing optional reference" instinct).
+- 37 EditMode tests still passing; this milestone doesn't touch
+  Puzzle/Economy/Core logic at all, so nothing new needed testing there.
+- Next is M8: split `GameBootstrap` into a persistent `AppRoot` +
+  `GameplayBootstrap`, add `ScreenNavigator`, create `MainMenu.unity` -
+  the riskiest milestone in this pass per the plan, isolate it.

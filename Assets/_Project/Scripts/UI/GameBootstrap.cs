@@ -31,9 +31,10 @@ namespace BadMovieClues.UI
                 ISaveService saveService = new LocalJsonSaveService();
                 ICurrencyService currency = new CurrencyService(saveService, config.StartingBalance);
                 var hintService = new HintService(currency, config);
+                IAudioService audioService = new SimpleAudioService();
 
                 var controller = new GameController(contentProvider, currency, hintService, config);
-                hud.Bind(controller);
+                hud.Bind(controller, audioService);
                 await controller.LoadLevelAsync(0);
             }
             catch (Exception e)

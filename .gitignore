@@ -67,3 +67,7 @@ Thumbs.db
 
 # Original reference material (inspiration only, not part of the Unity project)
 /reference/
+
+# Scratch folder for downloading/extracting third-party asset packs before
+# selecting individual files into Assets/_Project/Content/
+/.asset-import/

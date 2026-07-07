@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ab148cfd04192c24c81483b8562c00c6, type: 3}
   m_Name: UITheme
   m_EditorClassIdentifier: BadMovieClues.UI::BadMovieClues.UI.UITheme
-  ButtonNormalSprite: {fileID: 0}
+  ButtonNormalSprite: {fileID: 21300000, guid: 0be16376afb3aa04ba2f73df4dcb6d16, type: 3}
   ButtonPressedSprite: {fileID: 0}
   ButtonDisabledSprite: {fileID: 0}
-  PanelSprite: {fileID: 0}
-  KeySprite: {fileID: 0}
-  TileSprite: {fileID: 0}
+  PanelSprite: {fileID: 21300000, guid: 0e69cf9a4af8b4b4589eabd4213c10da, type: 3}
+  KeySprite: {fileID: 21300000, guid: 0be16376afb3aa04ba2f73df4dcb6d16, type: 3}
+  TileSprite: {fileID: 21300000, guid: 0da99e2c087a6174ab21d242a35bde65, type: 3}
   HeadingFont: {fileID: 0}
   BodyFont: {fileID: 0}
   BackgroundTop: {r: 0.16470589, g: 0.101960786, b: 0.24313726, a: 1}

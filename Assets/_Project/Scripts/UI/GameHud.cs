@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using BadMovieClues.Core;
 using BadMovieClues.Data;
 using BadMovieClues.Puzzle;
+using BadMovieClues.Services;
 using PrimeTween;
 using TMPro;
 using UnityEngine;
@@ -13,8 +14,8 @@ namespace BadMovieClues.UI
     /// Description text, per-letter blanks row, picture, an A-Z keyboard, a
     /// coin balance, and three hint buttons that gate on affordability.
     /// TextMeshPro throughout; PrimeTween drives the button "squish" and the
-    /// letter/picture/character "pop" reveal - purely visual, no game logic
-    /// lives here beyond what M3/M4 already had.
+    /// letter/picture/character "pop" reveal; UITheme skins buttons/tiles.
+    /// No game logic lives here beyond what M3/M4 already had.
     /// </summary>
     public class GameHud : MonoBehaviour
     {
@@ -22,6 +23,9 @@ namespace BadMovieClues.UI
         private const float SquishScale = 0.88f;
         private const float SquishDuration = 0.08f;
         private const float PopDuration = 0.35f;
+
+        [SerializeField] private UITheme theme;
+        [SerializeField] private AudioClip clickSound;
 
         [SerializeField] private TextMeshProUGUI descriptionText;
         [SerializeField] private RectTransform blanksRoot;
@@ -37,16 +41,20 @@ namespace BadMovieClues.UI
         [SerializeField] private TextMeshProUGUI letterHintButtonLabel;
 
         private GameController _controller;
+        private IAudioService _audioService;
         private readonly Dictionary<char, Button> _letterButtons = new Dictionary<char, Button>();
         private TextMeshProUGUI[] _tileLabels;
+        private RectTransform[] _tileRoots;
         private string _previousMaskedDisplay = "";
         private Sprite _pendingPictureSprite;
         private bool _pictureRevealed;
         private bool _characterRevealed;
 
-        public void Bind(GameController controller)
+        public void Bind(GameController controller, IAudioService audioService)
         {
             _controller = controller;
+            _audioService = audioService;
+
             controller.LevelLoaded += OnLevelLoaded;
             controller.Won += () => SetStatus("YOU WIN!");
             controller.Lost += () => SetStatus("YOU LOSE!");
@@ -59,6 +67,13 @@ namespace BadMovieClues.UI
             pictureHintButton.onClick.AddListener(OnPictureHintClicked);
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
             letterHintButton.onClick.AddListener(OnLetterHintClicked);
+
+            if (theme != null)
+            {
+                theme.ApplyButton(pictureHintButton, pictureHintButton.GetComponent<Image>());
+                theme.ApplyButton(characterHintButton, characterHintButton.GetComponent<Image>());
+                theme.ApplyButton(letterHintButton, letterHintButton.GetComponent<Image>());
+            }
 
             RefreshHintButtons();
             BuildKeyboard();
@@ -85,18 +100,31 @@ namespace BadMovieClues.UI
             foreach (Transform child in blanksRoot) Destroy(child.gameObject);
 
             _tileLabels = new TextMeshProUGUI[title.Length];
+            _tileRoots = new RectTransform[title.Length];
+
             for (var i = 0; i < title.Length; i++)
             {
-                var tileGo = new GameObject($"Tile_{i}", typeof(RectTransform));
+                var tileGo = new GameObject($"Tile_{i}", typeof(RectTransform), typeof(Image));
                 tileGo.transform.SetParent(blanksRoot, false);
+                var tileImage = tileGo.GetComponent<Image>();
+                if (theme != null) theme.ApplyTile(tileImage, isKeyboardKey: false);
+                else tileImage.enabled = false;
 
-                var tmp = tileGo.AddComponent<TextMeshProUGUI>();
+                var labelGo = new GameObject("Label", typeof(RectTransform));
+                labelGo.transform.SetParent(tileGo.transform, false);
+                var tmp = labelGo.AddComponent<TextMeshProUGUI>();
                 tmp.alignment = TextAlignmentOptions.Center;
                 tmp.fontSize = 44;
                 tmp.color = Color.black;
                 tmp.text = char.IsLetter(title[i]) ? BlankChar.ToString() : title[i].ToString();
+                var labelRt = (RectTransform)labelGo.transform;
+                labelRt.anchorMin = Vector2.zero;
+                labelRt.anchorMax = Vector2.one;
+                labelRt.offsetMin = Vector2.zero;
+                labelRt.offsetMax = Vector2.zero;
 
                 _tileLabels[i] = tmp;
+                _tileRoots[i] = (RectTransform)tileGo.transform;
             }
 
             // Placeholder that can't match BlankChar or any real character, so
@@ -118,7 +146,7 @@ namespace BadMovieClues.UI
 
                 if (oldChar == BlankChar && newChar != BlankChar)
                 {
-                    PlayPop(_tileLabels[i].rectTransform);
+                    PlayPop(_tileRoots[i]);
                 }
             }
             _previousMaskedDisplay = newDisplay;
@@ -186,6 +214,7 @@ namespace BadMovieClues.UI
             {
                 var buttonGo = new GameObject($"Key_{letter}", typeof(RectTransform), typeof(Image), typeof(Button));
                 buttonGo.transform.SetParent(keyboardRoot, false);
+                if (theme != null) theme.ApplyButton(buttonGo.GetComponent<Button>(), buttonGo.GetComponent<Image>());
 
                 var labelGo = new GameObject("Label", typeof(RectTransform));
                 labelGo.transform.SetParent(buttonGo.transform, false);
@@ -221,8 +250,9 @@ namespace BadMovieClues.UI
             RefreshHintButtons();
         }
 
-        private static void PlaySquish(Transform target)
+        private void PlaySquish(Transform target)
         {
+            _audioService?.PlayOneShot(clickSound);
             Tween.Scale(target, endValue: SquishScale, duration: SquishDuration, cycles: 2, cycleMode: CycleMode.Yoyo);
         }
 
