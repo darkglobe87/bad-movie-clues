@@ -203,3 +203,47 @@ each has its own verification step.
   confirm the on-screen keyboard/description/picture actually look right.**
 - Next is M4: `ICurrencyService` + `HintService` + `GameConfig` (coins,
   hint costs) and gating the hint buttons.
+
+## Setup status (M4)
+- `ISaveService`/`LocalJsonSaveService` (Services): one JSON file per key
+  under `Application.persistentDataPath` (directory injectable for tests).
+- `ICurrencyService`/`CurrencyService` (Economy): persisted coin balance,
+  `Add`/`TrySpend` (both reject negative amounts), `OnBalanceChanged` fires
+  only on an actual change.
+- `GameConfig` (Economy, ScriptableObject, asset at
+  `Assets/_Project/Content/GameConfig.asset`): `StartingBalance` (100),
+  `PictureHintCost` (50), `CharacterHintCost` (30), `LetterHintCost` (15).
+  Tune these directly on the asset - no code change needed.
+- `HintService` (Economy): picture/character hints are pure coin-gating (UI
+  decides what "revealed" means); the letter hint picks a random *hidden*
+  letter and guesses it on the puzzle's behalf - guaranteed correct, so it
+  never costs a wrong guess. Correctly charges nothing if there's nothing
+  left to hint (e.g. already fully guessed).
+- `GameController` (Core) now also holds `Currency`/`Config` and exposes
+  `TryRevealPictureHint`/`TryRevealCharacterHint`/`TryRevealLetterHint`,
+  delegating to `HintService`. Core is allowed to depend on Economy per the
+  stated dependency direction, so this needed no architecture exception.
+- `GameHud` (UI): picture and character clue now start **hidden** each level
+  (previously the picture was always shown - that was an M3 simplification,
+  now corrected) and only reveal once their hint is purchased; a coin
+  balance display; three hint buttons labelled with their live cost, each
+  `Button.interactable` gated on affordability/already-revealed/game-over,
+  refreshed on `Currency.OnBalanceChanged`.
+- **Bug found twice, same root cause:** `PuzzleState.GuessedLetters` is
+  typed `IReadOnlyCollection<char>`, which has no `Contains` method of its
+  own - it needs `System.Linq`'s extension method. Missing that `using` hit
+  both `HintService.cs` and, separately, `HintServiceTests.cs`. If you ever
+  see "`IReadOnlyCollection<char>` does not contain a definition for
+  `Contains`" again, this is why.
+- 37 EditMode tests passing project-wide (18 new: currency spend/earn/
+  persistence edge cases, real save/load round-trips via a temp directory,
+  hint gating and the "exactly one hidden letter left" deterministic case).
+- Runtime smoke test (same throwaway-script-calls-GameController-directly
+  approach as M3) confirmed the real end-to-end economy path: starting
+  balance loads correctly, all three hints spend the exact configured cost
+  in sequence (100 → 50 → 20 → 5), the letter hint reveals exactly one new
+  letter, and the puzzle is still winnable afterwards. Does not verify the
+  new UI wiring (hint buttons/coin text on screen) - same caveat as M3,
+  worth a manual Play-mode check.
+- Next is M5: TextMeshPro + PrimeTween polish pass (button squish, letter
+  tile pop, hint reveal transitions) - purely visual, no logic changes.

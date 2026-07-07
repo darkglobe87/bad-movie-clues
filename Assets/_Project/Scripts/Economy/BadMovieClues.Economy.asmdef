@@ -2,7 +2,8 @@
     "name": "BadMovieClues.Economy",
     "rootNamespace": "BadMovieClues.Economy",
     "references": [
-        "BadMovieClues.Services"
+        "BadMovieClues.Services",
+        "BadMovieClues.Puzzle"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

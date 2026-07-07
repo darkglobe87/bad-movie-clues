@@ -1,5 +1,6 @@
 using System;
 using BadMovieClues.Data;
+using BadMovieClues.Economy;
 using BadMovieClues.Puzzle;
 using UnityEngine;
 
@@ -13,7 +14,11 @@ namespace BadMovieClues.Core
     public class GameController
     {
         private readonly IContentProvider _contentProvider;
+        private readonly HintService _hintService;
         private LevelCatalog _catalog;
+
+        public ICurrencyService Currency { get; }
+        public GameConfig Config { get; }
 
         public LevelData CurrentLevel { get; private set; }
         public PuzzleState CurrentPuzzle { get; private set; }
@@ -23,9 +28,16 @@ namespace BadMovieClues.Core
         public event Action Won;
         public event Action Lost;
 
-        public GameController(IContentProvider contentProvider)
+        public GameController(
+            IContentProvider contentProvider,
+            ICurrencyService currency,
+            HintService hintService,
+            GameConfig config)
         {
             _contentProvider = contentProvider;
+            Currency = currency;
+            _hintService = hintService;
+            Config = config;
         }
 
         public async Awaitable LoadLevelAsync(int index)
@@ -52,6 +64,17 @@ namespace BadMovieClues.Core
             if (CurrentPuzzle == null)
                 throw new InvalidOperationException("No level loaded yet.");
             return CurrentPuzzle.Guess(letter);
+        }
+
+        public bool TryRevealPictureHint() => _hintService.TryRevealPicture();
+
+        public bool TryRevealCharacterHint() => _hintService.TryRevealCharacterClue();
+
+        public bool TryRevealLetterHint()
+        {
+            if (CurrentPuzzle == null)
+                throw new InvalidOperationException("No level loaded yet.");
+            return _hintService.TryRevealLetterHint(CurrentPuzzle);
         }
     }
 }
