@@ -9,7 +9,7 @@
         "BadMovieClues.Services",
         "Unity.TextMeshPro",
         "UnityEngine.UI",
-        "PrimeTween"
+        "PrimeTween.Runtime"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

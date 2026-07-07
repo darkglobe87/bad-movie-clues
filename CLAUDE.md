@@ -247,3 +247,48 @@ each has its own verification step.
   worth a manual Play-mode check.
 - Next is M5: TextMeshPro + PrimeTween polish pass (button squish, letter
   tile pop, hint reveal transitions) - purely visual, no logic changes.
+
+## Setup status (M5)
+- **TMP Essential Resources imported** (`Assets/TextMesh Pro/`, ~4MB,
+  commit as normal project content, not a build artifact). Needed before
+  any `TextMeshProUGUI` renders correctly - triggered programmatically the
+  same way Unity's own "Import TMP Essential Resources" menu item does
+  internally: resolve the TextMeshPro package's `resolvedPath` via
+  `PackageInfo.FindForAssembly`, then
+  `AssetDatabase.ImportPackage(".../TMP Essential Resources.unitypackage", false)`.
+- All `Text`/legacy UI text replaced with `TextMeshProUGUI` throughout
+  `GameHud` (description, coin balance, character clue, keyboard keys, hint
+  button labels).
+- **Blanks row is now per-letter tiles, not one string.** `BuildBlanksRow`
+  creates one `TextMeshProUGUI` per character position (in `blanksRoot`,
+  rebuilt fresh each level since titles differ in length); `RefreshBlanks`
+  diffs the previous vs. new `MaskedDisplay()` string character-by-character
+  to detect which position just got revealed, and only pops *that* tile -
+  this stays entirely UI-side string diffing, no new `PuzzleState` API.
+- Win/loss status now appends to `descriptionText` (`"{description}\n\n{status}"`)
+  rather than a dedicated status element - simpler, no new UI element needed,
+  and the bad description isn't very useful once the round is already over.
+- PrimeTween: `Tween.Scale(transform, endValue: 0.88f, duration: 0.08f,
+  cycles: 2, cycleMode: CycleMode.Yoyo)` gives the button "squish" on every
+  letter key and hint button click in one call (no manual chaining needed).
+  `Tween.Scale(transform, endValue: 1f, duration: 0.35f, ease: Ease.OutElastic)`
+  from a zeroed `localScale` gives the "pop" on newly-revealed letter tiles,
+  the picture (once hinted), and the character clue text (once hinted).
+- **Package reference bug found and fixed** (same class of mistake as
+  M3's `Unity.ugui`): `BadMovieClues.UI.asmdef` referenced `"PrimeTween"`,
+  but the package's actual runtime assembly is named `"PrimeTween.Runtime"`
+  (confirmed by reading the installed package's own `.asmdef` file in
+  `Library/PackageCache` directly, rather than guessing again).
+- **No logic changed anywhere** - `GameController`, `PuzzleState`,
+  `HintService`, `CurrencyService` are untouched. All 37 existing EditMode
+  tests still pass unchanged; no new tests were needed since this milestone
+  is explicitly visual-only per the plan.
+- **Not verified:** the animations themselves, and whether the new
+  TMP/tile layout actually looks right on screen. Compile-clean and
+  logic-test-green is as far as this environment can confirm without a
+  human pressing Play. Given M4's UI also hasn't been eyeballed yet, this
+  is a good point to do **one combined Play-mode check** covering both
+  milestones' UI at once rather than two separate check-ins.
+- This completes the planned "editor vertical slice." Next is M6: a
+  `RemoteContentProvider` (fetch the catalog + images from a URL, bundled
+  catalog stays as offline fallback).

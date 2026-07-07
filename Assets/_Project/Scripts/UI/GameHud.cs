@@ -2,33 +2,44 @@ using System.Collections.Generic;
 using BadMovieClues.Core;
 using BadMovieClues.Data;
 using BadMovieClues.Puzzle;
+using PrimeTween;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Minimal view: description text, blanks row, picture, an A-Z keyboard,
-    /// a coin balance, and three hint buttons that gate on affordability.
-    /// No animation/juice yet - that's M5.
+    /// Description text, per-letter blanks row, picture, an A-Z keyboard, a
+    /// coin balance, and three hint buttons that gate on affordability.
+    /// TextMeshPro throughout; PrimeTween drives the button "squish" and the
+    /// letter/picture/character "pop" reveal - purely visual, no game logic
+    /// lives here beyond what M3/M4 already had.
     /// </summary>
     public class GameHud : MonoBehaviour
     {
-        [SerializeField] private Text descriptionText;
-        [SerializeField] private Text blanksText;
+        private const char BlankChar = '_';
+        private const float SquishScale = 0.88f;
+        private const float SquishDuration = 0.08f;
+        private const float PopDuration = 0.35f;
+
+        [SerializeField] private TextMeshProUGUI descriptionText;
+        [SerializeField] private RectTransform blanksRoot;
         [SerializeField] private Image pictureImage;
         [SerializeField] private RectTransform keyboardRoot;
-        [SerializeField] private Text coinBalanceText;
-        [SerializeField] private Text characterClueText;
+        [SerializeField] private TextMeshProUGUI coinBalanceText;
+        [SerializeField] private TextMeshProUGUI characterClueText;
         [SerializeField] private Button pictureHintButton;
-        [SerializeField] private Text pictureHintButtonLabel;
+        [SerializeField] private TextMeshProUGUI pictureHintButtonLabel;
         [SerializeField] private Button characterHintButton;
-        [SerializeField] private Text characterHintButtonLabel;
+        [SerializeField] private TextMeshProUGUI characterHintButtonLabel;
         [SerializeField] private Button letterHintButton;
-        [SerializeField] private Text letterHintButtonLabel;
+        [SerializeField] private TextMeshProUGUI letterHintButtonLabel;
 
         private GameController _controller;
         private readonly Dictionary<char, Button> _letterButtons = new Dictionary<char, Button>();
+        private TextMeshProUGUI[] _tileLabels;
+        private string _previousMaskedDisplay = "";
         private Sprite _pendingPictureSprite;
         private bool _pictureRevealed;
         private bool _characterRevealed;
@@ -64,43 +75,88 @@ namespace BadMovieClues.UI
             characterClueText.text = "";
 
             foreach (var button in _letterButtons.Values) button.interactable = true;
-            RefreshBlanks();
+
+            BuildBlanksRow(level.MovieTitle);
             RefreshHintButtons();
+        }
+
+        private void BuildBlanksRow(string title)
+        {
+            foreach (Transform child in blanksRoot) Destroy(child.gameObject);
+
+            _tileLabels = new TextMeshProUGUI[title.Length];
+            for (var i = 0; i < title.Length; i++)
+            {
+                var tileGo = new GameObject($"Tile_{i}", typeof(RectTransform));
+                tileGo.transform.SetParent(blanksRoot, false);
+
+                var tmp = tileGo.AddComponent<TextMeshProUGUI>();
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.fontSize = 44;
+                tmp.color = Color.black;
+                tmp.text = char.IsLetter(title[i]) ? BlankChar.ToString() : title[i].ToString();
+
+                _tileLabels[i] = tmp;
+            }
+
+            // Placeholder that can't match BlankChar or any real character, so
+            // the first RefreshBlanks() never spuriously pops anything that
+            // was already revealed from the start (spaces/punctuation).
+            _previousMaskedDisplay = new string('\0', title.Length);
+            RefreshBlanks();
         }
 
         private void RefreshBlanks()
         {
-            blanksText.text = _controller.CurrentPuzzle.MaskedDisplay();
+            var newDisplay = _controller.CurrentPuzzle.MaskedDisplay();
+            for (var i = 0; i < _tileLabels.Length; i++)
+            {
+                var newChar = newDisplay[i];
+                var oldChar = i < _previousMaskedDisplay.Length ? _previousMaskedDisplay[i] : BlankChar;
+
+                _tileLabels[i].text = newChar.ToString();
+
+                if (oldChar == BlankChar && newChar != BlankChar)
+                {
+                    PlayPop(_tileLabels[i].rectTransform);
+                }
+            }
+            _previousMaskedDisplay = newDisplay;
         }
 
         private void SetStatus(string status)
         {
-            blanksText.text = $"{_controller.CurrentPuzzle.MaskedDisplay()}  [{status}]";
+            descriptionText.text = $"{_controller.CurrentLevel.BadDescription}\n\n{status}";
             foreach (var button in _letterButtons.Values) button.interactable = false;
             RefreshHintButtons();
         }
 
         private void OnPictureHintClicked()
         {
+            PlaySquish(pictureHintButton.transform);
             if (_pictureRevealed || !_controller.TryRevealPictureHint()) return;
 
             _pictureRevealed = true;
             pictureImage.sprite = _pendingPictureSprite;
             pictureImage.enabled = _pendingPictureSprite != null;
+            if (pictureImage.enabled) PlayPop(pictureImage.rectTransform);
             RefreshHintButtons();
         }
 
         private void OnCharacterHintClicked()
         {
+            PlaySquish(characterHintButton.transform);
             if (_characterRevealed || !_controller.TryRevealCharacterHint()) return;
 
             _characterRevealed = true;
             characterClueText.text = _controller.CurrentLevel.CharacterClue;
+            PlayPop(characterClueText.rectTransform);
             RefreshHintButtons();
         }
 
         private void OnLetterHintClicked()
         {
+            PlaySquish(letterHintButton.transform);
             if (!_controller.TryRevealLetterHint()) return;
             if (_controller.CurrentPuzzle.IsOver) return; // SetStatus already refreshed everything
 
@@ -122,20 +178,18 @@ namespace BadMovieClues.UI
 
         private void BuildKeyboard()
         {
-            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
-
             foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
             {
                 var buttonGo = new GameObject($"Key_{letter}", typeof(RectTransform), typeof(Image), typeof(Button));
                 buttonGo.transform.SetParent(keyboardRoot, false);
 
-                var labelGo = new GameObject("Label", typeof(RectTransform), typeof(Text));
+                var labelGo = new GameObject("Label", typeof(RectTransform));
                 labelGo.transform.SetParent(buttonGo.transform, false);
-                var label = labelGo.GetComponent<Text>();
+                var label = labelGo.AddComponent<TextMeshProUGUI>();
                 label.text = letter.ToString();
-                label.font = font;
-                label.alignment = TextAnchor.MiddleCenter;
+                label.alignment = TextAlignmentOptions.Center;
                 label.color = Color.black;
+                label.fontSize = 28;
                 var labelRt = (RectTransform)labelGo.transform;
                 labelRt.anchorMin = Vector2.zero;
                 labelRt.anchorMax = Vector2.one;
@@ -152,6 +206,7 @@ namespace BadMovieClues.UI
 
         private void OnLetterPressed(char letter, Button button)
         {
+            PlaySquish(button.transform);
             var outcome = _controller.GuessLetter(letter);
             if (outcome != GuessOutcome.Correct && outcome != GuessOutcome.Incorrect) return;
 
@@ -160,6 +215,17 @@ namespace BadMovieClues.UI
 
             RefreshBlanks();
             RefreshHintButtons();
+        }
+
+        private static void PlaySquish(Transform target)
+        {
+            Tween.Scale(target, endValue: SquishScale, duration: SquishDuration, cycles: 2, cycleMode: CycleMode.Yoyo);
+        }
+
+        private static void PlayPop(Transform target)
+        {
+            target.localScale = Vector3.zero;
+            Tween.Scale(target, endValue: 1f, duration: PopDuration, ease: Ease.OutElastic);
         }
     }
 }
