@@ -301,18 +301,29 @@ pipeline on a physical device (not part of the milestone sequence, just a
   script like the others), menu item **Bad Movie Clues → Build Android
   Test APK**. Outputs to `Builds/Android/BadMovieClues-test.apk`
   (gitignored, like all build output).
-- Deliberately uses **Mono2x scripting backend + ARMv7** for build speed on
-  this machine, with a **placeholder application identifier**
-  (`com.badmovieclues.game`) and **Development build** (debuggable, larger,
-  not for release). None of this is right for a real Play Store submission
-  - that needs IL2CPP (Play Store requires 64-bit/ARM64, which Mono on
-    Android doesn't support), a real permanent application identifier
-    (can't be changed once published), and a Release build. That's M7's job.
-- **Real bug found and fixed:** first attempt requested `AndroidArchitecture.ARM64`
-  while scripting backend was Mono2x - Mono only supports ARMv7 on Android,
-  so the build silently ended up with zero valid architectures selected,
-  failing with "Target architecture not specified" only once Gradle
-  actually ran (not a compile-time error). Switching to `ARMv7` fixed it.
+- Uses **IL2CPP scripting backend + ARM64**, a **placeholder application
+  identifier** (`com.badmovieclues.game`), and a **Development build**
+  (debuggable, larger, not for release). The identifier and Development
+  flag still need to change before any real Play Store submission - that's
+  M7's job.
+- **Two real bugs found and fixed in sequence, both only surfacing at the
+  Gradle stage (not compile-time):**
+  1. First attempt used Mono2x + ARM64 - Mono doesn't support ARM64 on
+     Android at all, so the build silently ended up with zero valid
+     architectures selected ("Target architecture not specified").
+     Switched to Mono2x + ARMv7, which "fixed" the build but was wrong:
+  2. **ARMv7-only APKs don't install at all on recent high-end phones**
+     (confirmed on a real device: Snapdragon 8 Elite). Qualcomm dropped
+     32-bit app support entirely on recent flagship chips to save die
+     space - this isn't a Unity/project issue, it's a real platform gap.
+     The only correct fix is **IL2CPP + ARM64** (Mono cannot target ARM64
+     on Android under any configuration - this is a hard platform
+     limitation, not a setting to tune around). IL2CPP AOT-compiles all
+     C# to native code via the NDK toolchain, so builds are substantially
+     heavier/slower than Mono - expect this on future rebuilds too.
+  Lesson: **don't assume ARMv7 "runs on any phone" for anything modern** -
+  always build ARM64 via IL2CPP for real devices; only fall back to
+  Mono/ARMv7 for a known-older test device if build speed is critical.
 - Install: connect the phone via USB with USB debugging enabled, then
   `"C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe" install -r Builds/Android/BadMovieClues-test.apk`
   (bundled adb, no separate Android Studio/SDK install needed).

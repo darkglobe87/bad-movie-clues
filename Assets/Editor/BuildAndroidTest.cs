@@ -5,11 +5,12 @@ using UnityEditor.Build.Reporting;
 using UnityEngine;
 
 /// <summary>
-/// One-time helper: produces a sideload-only test APK. Mono scripting
-/// backend (much faster to build than IL2CPP) and a placeholder package
-/// identifier - fine for testing on your own device, but IL2CPP + a real
-/// identifier will be needed before any Play Store submission (that's M7).
-/// Safe to delete after use. Run via: Unity.exe -batchmode -executeMethod BuildAndroidTest.Run
+/// Produces a sideload-only test APK. IL2CPP + ARM64 - required for modern
+/// phones (recent Snapdragon chips dropped 32-bit/ARMv7 support entirely,
+/// so Mono's ARMv7-only output won't even install). A placeholder package
+/// identifier is used here; a real one + a Release build will be needed
+/// before any Play Store submission (that's M7).
+/// Run via: Unity.exe -batchmode -executeMethod BuildAndroidTest.Run
 /// </summary>
 public static class BuildAndroidTest
 {
@@ -20,12 +21,8 @@ public static class BuildAndroidTest
     {
         PlayerSettings.productName = "Bad Movie Clues";
         PlayerSettings.SetApplicationIdentifier(NamedBuildTarget.Android, "com.badmovieclues.game");
-        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.Mono2x);
-        // Mono on Android only supports the 32-bit ARMv7 architecture (ARM64
-        // requires IL2CPP) - every real phone still runs ARMv7 binaries fine,
-        // this just wouldn't pass Play Store's 64-bit requirement, which
-        // doesn't matter for a sideloaded test build.
-        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7;
+        PlayerSettings.SetScriptingBackend(NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+        PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
         PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel25;
 
         var buildDir = Path.GetDirectoryName(OutputPath);
