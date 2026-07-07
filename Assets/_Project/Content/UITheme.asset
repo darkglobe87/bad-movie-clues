@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ab148cfd04192c24c81483b8562c00c6, type: 3}
+  m_Name: UITheme
+  m_EditorClassIdentifier: BadMovieClues.UI::BadMovieClues.UI.UITheme
+  ButtonNormalSprite: {fileID: 0}
+  ButtonPressedSprite: {fileID: 0}
+  ButtonDisabledSprite: {fileID: 0}
+  PanelSprite: {fileID: 0}
+  KeySprite: {fileID: 0}
+  TileSprite: {fileID: 0}
+  HeadingFont: {fileID: 0}
+  BodyFont: {fileID: 0}
+  BackgroundTop: {r: 0.16470589, g: 0.101960786, b: 0.24313726, a: 1}
+  BackgroundBottom: {r: 0.23921569, g: 0.14117648, b: 0.34901962, a: 1}
+  AccentGold: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
+  AccentMagenta: {r: 1, g: 0.30588236, b: 0.54509807, a: 1}
+  AccentLime: {r: 0.7137255, g: 1, b: 0.23529412, a: 1}
+  NeutralLight: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
+  DangerRed: {r: 0.7764706, g: 0.25490198, b: 0.23137255, a: 1}

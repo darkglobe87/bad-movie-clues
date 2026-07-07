@@ -1,3 +1,4 @@
+using System;
 using BadMovieClues.Core;
 using BadMovieClues.Data;
 using BadMovieClues.Economy;
@@ -19,14 +20,26 @@ namespace BadMovieClues.UI
 
         private async Awaitable Start()
         {
-            IContentProvider contentProvider = new BundledContentProvider();
-            ISaveService saveService = new LocalJsonSaveService();
-            ICurrencyService currency = new CurrencyService(saveService, config.StartingBalance);
-            var hintService = new HintService(currency, config);
+            // Unity's Awaitable-returning lifecycle methods do not appear to
+            // surface an exception thrown before the method's first await -
+            // nothing ever observes the resulting faulted Awaitable, so it's
+            // silently swallowed (no Console output at all). This try/catch
+            // is a permanent safety net against exactly that.
+            try
+            {
+                IContentProvider contentProvider = new BundledContentProvider();
+                ISaveService saveService = new LocalJsonSaveService();
+                ICurrencyService currency = new CurrencyService(saveService, config.StartingBalance);
+                var hintService = new HintService(currency, config);
 
-            var controller = new GameController(contentProvider, currency, hintService, config);
-            hud.Bind(controller);
-            await controller.LoadLevelAsync(0);
+                var controller = new GameController(contentProvider, currency, hintService, config);
+                hud.Bind(controller);
+                await controller.LoadLevelAsync(0);
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[GameBootstrap] Exception in Start(): {e}");
+            }
         }
     }
 }

@@ -305,7 +305,8 @@ pipeline on a physical device (not part of the milestone sequence, just a
   identifier** (`com.badmovieclues.game`), and a **Development build**
   (debuggable, larger, not for release). The identifier and Development
   flag still need to change before any real Play Store submission - that's
-  M7's job.
+  M15's job (renumbered from M7 once the Visual/Art/UX pass M6-M13 was
+  inserted ahead of it - see the plan file).
 - **Two real bugs found and fixed in sequence, both only surfacing at the
   Gradle stage (not compile-time):**
   1. First attempt used Mono2x + ARM64 - Mono doesn't support ARM64 on
@@ -327,3 +328,46 @@ pipeline on a physical device (not part of the milestone sequence, just a
 - Install: connect the phone via USB with USB debugging enabled, then
   `"C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe" install -r Builds/Android/BadMovieClues-test.apk`
   (bundled adb, no separate Android Studio/SDK install needed).
+
+## Visual / Art / UX Pass — see the plan file for full design
+A separate ~9-milestone pass (M6-M13) was scoped after M5 to add theming,
+a dust-particle background, a full main menu, splash screen, light-touch
+audio, level-select progression, a stubbed store, and a 2D level-complete
+celebration. The original M6 (remote content) and M7 (Android + real SDKs)
+are renumbered M14/M15 to follow it. Full design detail, palette, asset
+list, and milestone prompts live in the plan file at
+`C:\Users\matth\.claude\plans\i-ve-created-a-game-groovy-gadget.md` under
+"Visual / Art / UX Pass (M6-M13)" - not duplicated here to avoid drift
+between two copies of the same plan.
+
+## Setup status (M6)
+- **Real bug fixed** (found via user bug report + a live debugging session,
+  not caught by any automated test): `BlanksRoot` and `HintButtonsRoot`
+  both had `HorizontalLayoutGroup.childControlWidth/childControlHeight`
+  false (only `childForceExpandWidth/Height` was true). Without child-size
+  control, tiles/buttons used their own default RectTransform size instead
+  of being resized to fit, so long titles (e.g. "The Wizard of Oz") ran off
+  the right edge of the screen instead of compressing. Both now set to
+  true. **Lesson:** `ForceExpand` alone does not resize children - it only
+  weights how leftover space is distributed; `ControlWidth`/`ControlHeight`
+  is what actually makes a layout group own the child's size.
+- Also fixed along the way (found via the same live debugging session):
+  `GameBootstrap.Start()` was throwing `NullReferenceException` on a null
+  `config` field with **zero Console output** - Unity's `Awaitable`-
+  returning lifecycle methods apparently don't surface an exception thrown
+  before the method's first `await`, since nothing ever observes the
+  resulting faulted `Awaitable`. A permanent try/catch safety net around
+  the whole method body is now in place; apply this same pattern to every
+  future `async Awaitable` lifecycle method in this project (`ScreenNavigator`,
+  the splash auto-advance, etc.) - this is a proven real footgun, not a
+  hypothetical.
+- `UITheme` (UI asmdef, `ScriptableObject`): sprite/font/palette fields for
+  the upcoming Kenney UI Pack import (M7); asset created at
+  `Assets/_Project/Content/UITheme.asset` with fields empty except the
+  palette colors (already set to the plan's "campy B-movie theatre" hex
+  values). Includes `ApplyButton`/`ApplyTile` helpers ready for M7 to call
+  once sprites are assigned - falls back to the current plain look until then.
+- 37 EditMode tests still passing project-wide; no new tests needed (this
+  milestone is layout/asset-shell only, no new logic).
+- Next is M7: import the Kenney UI Pack, populate `UITheme`, reskin the
+  gameplay HUD, add minimal click-SFX via a new `IAudioService`.
