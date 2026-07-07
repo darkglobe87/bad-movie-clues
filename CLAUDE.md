@@ -292,3 +292,27 @@ each has its own verification step.
 - This completes the planned "editor vertical slice." Next is M6: a
   `RemoteContentProvider` (fetch the catalog + images from a URL, bundled
   catalog stays as offline fallback).
+
+## Ad-hoc: sideload test APK
+Before M6/M7, produced a real Android build to sanity-check the whole
+pipeline on a physical device (not part of the milestone sequence, just a
+"does this actually run on a phone" check requested early).
+- `Assets/Editor/BuildAndroidTest.cs` — kept permanently (not a throwaway
+  script like the others), menu item **Bad Movie Clues → Build Android
+  Test APK**. Outputs to `Builds/Android/BadMovieClues-test.apk`
+  (gitignored, like all build output).
+- Deliberately uses **Mono2x scripting backend + ARMv7** for build speed on
+  this machine, with a **placeholder application identifier**
+  (`com.badmovieclues.game`) and **Development build** (debuggable, larger,
+  not for release). None of this is right for a real Play Store submission
+  - that needs IL2CPP (Play Store requires 64-bit/ARM64, which Mono on
+    Android doesn't support), a real permanent application identifier
+    (can't be changed once published), and a Release build. That's M7's job.
+- **Real bug found and fixed:** first attempt requested `AndroidArchitecture.ARM64`
+  while scripting backend was Mono2x - Mono only supports ARMv7 on Android,
+  so the build silently ended up with zero valid architectures selected,
+  failing with "Target architecture not specified" only once Gradle
+  actually ran (not a compile-time error). Switching to `ARMv7` fixed it.
+- Install: connect the phone via USB with USB debugging enabled, then
+  `"C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\PlaybackEngines\AndroidPlayer\SDK\platform-tools\adb.exe" install -r Builds/Android/BadMovieClues-test.apk`
+  (bundled adb, no separate Android Studio/SDK install needed).

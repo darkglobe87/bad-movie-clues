@@ -54,6 +54,9 @@ sysinfo.txt
 # Crashlytics generated file
 crashlytics-build.properties
 
+# Android native build cache (CMake/Ninja intermediates)
+.utmp/
+
 # Packages lock file (commit if you want reproducible package resolution;
 # excluded here since we're still pinning early dependencies by hand)
 # /Packages/packages-lock.json
