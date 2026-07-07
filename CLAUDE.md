@@ -153,3 +153,53 @@ each has its own verification step.
 - Next is M3: wire `GameController` + a bootstrap scene around
   `BundledContentProvider` + `PuzzleState` for a minimal playable loop in
   the editor (no economy, no juice yet).
+
+## Setup status (M3)
+- `GameController` (Core, plain C#) loads the catalog, picks a level, loads
+  its image, constructs a `PuzzleState`, and re-broadcasts
+  `LevelLoaded`/`Won`/`Lost` events.
+- **Architecture deviation from the original asmdef table, intentional:**
+  the composition root (`GameBootstrap`) lives in `BadMovieClues.UI`, not
+  Core. Core must never depend on UI (see dependency direction above), and
+  a bootstrap that wires a concrete view needs to know about it - so it
+  belongs at the top of the dependency graph (UI), not in Core.
+- `GameHud` (UI) is a deliberately plain MonoBehaviour view: legacy
+  `UnityEngine.UI` (`Text`/`Image`/`Button`/`GridLayoutGroup`), not
+  TextMeshPro - upgrading to TMP is explicitly M5's job, not M3's.
+- `Assets/_Project/Scenes/Bootstrap.unity` is the real playable scene:
+  Canvas, description/blanks text, picture image, a runtime-built A-Z
+  keyboard, `GameHud` + `GameBootstrap`. Registered in Build Settings.
+- **Package gotcha found and fixed:** `com.unity.modules.ui` (a built-in
+  module, already present) is *not* the same as `com.unity.ugui` (the actual
+  package providing legacy `Text`/`Image`/`Button`) - the latter was never
+  installed until M3. `BadMovieClues.UI.asmdef`'s reference was also wrong
+  (`"Unity.ugui"` instead of `"UnityEngine.UI"`, the real assembly name) -
+  both fixed. Installing a package requires the whole project to compile
+  first, so when GameHud.cs itself was the thing failing to compile, the
+  broken files had to be moved out temporarily, package installed, then
+  restored.
+- **Real Addressables bug found and fixed:** `AddressableImageUtility` (M1)
+  set the texture import type to Sprite, but Addressables had already
+  cached the entry's type as `Texture2D` at registration time, so
+  `Addressables.LoadAssetAsync<Sprite>(imageKey)` threw `InvalidKeyException`
+  at runtime (only caught because M3's verification actually exercised the
+  real Addressables load path, which M1's EditMode tests deliberately did
+  not). Fixed by loading `Texture2D` (matching what's actually registered)
+  and wrapping it in a `Sprite` via `Sprite.Create` inside
+  `BundledContentProvider`; `AddressableImageUtility` no longer touches
+  texture import type at all.
+- **Verification approach:** rather than toggling real Play Mode from a
+  batch script (which triggers a domain reload that wipes static state
+  needed to poll for completion - a real trap), M3 was verified by calling
+  `GameController` directly from a throwaway Editor script: load the
+  catalog, load the "jaws" level specifically (it has a real image, unlike
+  index 0), confirm `CurrentImage` resolved via real Addressables, guess
+  every letter, confirm `IsWon`. This exercises the actual runtime path
+  end-to-end. It does **not** verify the MonoBehaviour/UI wiring
+  (`GameHud`/`GameBootstrap`/button clicks) - that needs a human to open
+  `Bootstrap.unity` and press Play, since there's no way to drive the Unity
+  Editor GUI from this environment (unlike web dev, where a browser preview
+  tool exists). **Please open the project and hit Play at least once to
+  confirm the on-screen keyboard/description/picture actually look right.**
+- Next is M4: `ICurrencyService` + `HintService` + `GameConfig` (coins,
+  hint costs) and gating the hint buttons.

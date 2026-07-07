@@ -8,7 +8,7 @@
         "BadMovieClues.Economy",
         "BadMovieClues.Services",
         "Unity.TextMeshPro",
-        "Unity.ugui",
+        "UnityEngine.UI",
         "PrimeTween"
     ],
     "includePlatforms": [],

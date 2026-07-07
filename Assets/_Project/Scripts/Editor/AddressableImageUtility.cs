@@ -6,10 +6,13 @@ using UnityEditor.AddressableAssets.Settings.GroupSchemas;
 namespace BadMovieClues.EditorTools
 {
     /// <summary>
-    /// Ensures a curated "bad art" image is set up correctly for runtime
-    /// loading: imported as a Sprite and registered as an Addressable asset
-    /// under a stable address (the movie's imageKey). Used by the movie
-    /// authoring tool whenever an image is assigned to a level.
+    /// Registers a curated "bad art" image as an Addressable asset under a
+    /// stable address (the movie's imageKey). Used by the movie authoring
+    /// tool whenever an image is assigned to a level. Deliberately does not
+    /// touch the texture import type - BundledContentProvider loads these as
+    /// Texture2D (matching what Addressables actually has cached for the
+    /// entry) and wraps the result in a Sprite itself, rather than depending
+    /// on import-type/type-cache timing.
     /// </summary>
     public static class AddressableImageUtility
     {
@@ -18,13 +21,6 @@ namespace BadMovieClues.EditorTools
         public static void EnsureAddressable(string assetPath, string address)
         {
             if (string.IsNullOrEmpty(assetPath) || string.IsNullOrEmpty(address)) return;
-
-            var importer = AssetImporter.GetAtPath(assetPath) as TextureImporter;
-            if (importer != null && importer.textureType != TextureImporterType.Sprite)
-            {
-                importer.textureType = TextureImporterType.Sprite;
-                importer.SaveAndReimport();
-            }
 
             var settings = AddressableAssetSettingsDefaultObject.GetSettings(true);
             var group = settings.FindGroup(GroupName) ?? settings.CreateGroup(
