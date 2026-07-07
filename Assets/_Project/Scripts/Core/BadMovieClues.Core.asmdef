@@ -1,0 +1,19 @@
+{
+    "name": "BadMovieClues.Core",
+    "rootNamespace": "BadMovieClues.Core",
+    "references": [
+        "BadMovieClues.Data",
+        "BadMovieClues.Puzzle",
+        "BadMovieClues.Economy",
+        "BadMovieClues.Services"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

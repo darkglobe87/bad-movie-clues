@@ -1,0 +1,26 @@
+{
+    "name": "BadMovieClues.Tests",
+    "rootNamespace": "BadMovieClues.Tests",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "BadMovieClues.Puzzle",
+        "BadMovieClues.Economy",
+        "BadMovieClues.Data",
+        "BadMovieClues.Services"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": []
+}

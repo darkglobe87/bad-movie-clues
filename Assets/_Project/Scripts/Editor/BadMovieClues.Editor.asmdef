@@ -1,0 +1,19 @@
+{
+    "name": "BadMovieClues.Editor",
+    "rootNamespace": "BadMovieClues.EditorTools",
+    "references": [
+        "BadMovieClues.Data",
+        "BadMovieClues.Core",
+        "Newtonsoft.Json"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": []
+}

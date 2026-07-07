@@ -1,0 +1,23 @@
+{
+    "name": "BadMovieClues.UI",
+    "rootNamespace": "BadMovieClues.UI",
+    "references": [
+        "BadMovieClues.Core",
+        "BadMovieClues.Data",
+        "BadMovieClues.Puzzle",
+        "BadMovieClues.Economy",
+        "BadMovieClues.Services",
+        "Unity.TextMeshPro",
+        "Unity.ugui",
+        "PrimeTween"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
