@@ -8,6 +8,7 @@ namespace BadMovieClues.Services
         private readonly ISaveService _saveService;
         private bool _reducedEffects;
         private bool _audioEnabled;
+        private bool _hapticsEnabled;
 
         public event Action Changed;
 
@@ -18,10 +19,12 @@ namespace BadMovieClues.Services
             {
                 _reducedEffects = loaded.ReducedEffects;
                 _audioEnabled = loaded.AudioEnabled;
+                _hapticsEnabled = loaded.HapticsEnabled;
             }
             else
             {
                 _audioEnabled = true;
+                _hapticsEnabled = true;
             }
         }
 
@@ -49,16 +52,30 @@ namespace BadMovieClues.Services
             }
         }
 
+        public bool HapticsEnabled
+        {
+            get => _hapticsEnabled;
+            set
+            {
+                if (_hapticsEnabled == value) return;
+                _hapticsEnabled = value;
+                Persist();
+                Changed?.Invoke();
+            }
+        }
+
         private void Persist() => _saveService.Save(SaveKey, new SettingsData
         {
             ReducedEffects = _reducedEffects,
             AudioEnabled = _audioEnabled,
+            HapticsEnabled = _hapticsEnabled,
         });
 
         private struct SettingsData
         {
             public bool ReducedEffects;
             public bool AudioEnabled;
+            public bool HapticsEnabled;
         }
     }
 }

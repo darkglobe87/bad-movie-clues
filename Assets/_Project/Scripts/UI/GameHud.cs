@@ -15,7 +15,7 @@ namespace BadMovieClues.UI
     /// coin balance, and three hint buttons that gate on affordability.
     /// TextMeshPro throughout; PrimeTween drives the button "squish" and the
     /// letter/picture/character "pop" reveal; UITheme skins buttons/tiles.
-    /// No game logic lives here beyond what M3/M4 already had.
+    /// Enhanced with dynamic panels, QWERTY correct/incorrect feedback, coin particle bursts.
     /// </summary>
     public class GameHud : MonoBehaviour
     {
@@ -51,11 +51,14 @@ namespace BadMovieClues.UI
         private Sprite _pendingPictureSprite;
         private bool _pictureRevealed;
         private bool _characterRevealed;
+        private int _previousStars;
+        private UIObjectPool<Image> _tilePool;
 
         public void Bind(GameController controller, IAudioService audioService)
         {
             _controller = controller;
             _audioService = audioService;
+            _tilePool = new UIObjectPool<Image>(blanksRoot);
 
             controller.LevelLoaded += OnLevelLoaded;
             controller.Won += OnWon;
@@ -79,15 +82,42 @@ namespace BadMovieClues.UI
                 theme.ApplyButton(characterHintButton, characterHintButton.GetComponent<Image>());
                 theme.ApplyButton(letterHintButton, letterHintButton.GetComponent<Image>());
 
-                // These three sit directly on the dark ambient background
-                // (no panel behind them) - black-on-#2A1A3E was nearly
-                // unreadable once the real background shipped in M9. Tile
-                // and keyboard-key labels stay black on purpose - those sit
-                // on NeutralLight-colored tile/key sprites, where black is
-                // the correct contrast choice.
+                // Style coin, character, and description texts
                 descriptionText.color = theme.NeutralLight;
-                coinBalanceText.color = theme.NeutralLight;
+                if (theme.BodyFont != null) descriptionText.font = theme.BodyFont;
+                
+                coinBalanceText.color = theme.CoinTextColor;
+                if (theme.BodyFont != null) coinBalanceText.font = theme.BodyFont;
+                
                 characterClueText.color = theme.NeutralLight;
+                if (theme.BodyFont != null) characterClueText.font = theme.BodyFont;
+
+                // Add dynamic panel behind description text for visual separation
+                if (descriptionText != null)
+                {
+                    var panelGo = new GameObject("DescriptionPanel", typeof(RectTransform), typeof(Image));
+                    panelGo.transform.SetParent(descriptionText.transform.parent, false);
+                    var panelRt = (RectTransform)panelGo.transform;
+
+                    var descRt = descriptionText.rectTransform;
+                    panelRt.anchorMin = descRt.anchorMin;
+                    panelRt.anchorMax = descRt.anchorMax;
+                    panelRt.anchoredPosition = descRt.anchoredPosition;
+                    panelRt.sizeDelta = descRt.sizeDelta;
+                    panelRt.offsetMin = descRt.offsetMin;
+                    panelRt.offsetMax = descRt.offsetMax;
+
+                    panelGo.transform.SetSiblingIndex(descriptionText.transform.GetSiblingIndex());
+
+                    var panelImage = panelGo.GetComponent<Image>();
+                    theme.ApplyPanel(panelImage);
+
+                    descriptionText.transform.SetParent(panelRt, false);
+                    descRt.anchorMin = Vector2.zero;
+                    descRt.anchorMax = Vector2.one;
+                    descRt.offsetMin = new Vector2(16f, 12f);
+                    descRt.offsetMax = new Vector2(-16f, -12f);
+                }
             }
 
             RefreshHintButtons();
@@ -103,8 +133,18 @@ namespace BadMovieClues.UI
             _characterRevealed = false;
             pictureImage.enabled = false;
             characterClueText.text = "";
+            _previousStars = AppRoot.Instance.Progress.GetStars(level.Id);
 
-            foreach (var button in _letterButtons.Values) button.interactable = true;
+            foreach (var button in _letterButtons.Values)
+            {
+                button.interactable = true;
+                // Reset key colors to default theme button state
+                if (theme != null)
+                {
+                    var img = button.GetComponent<Image>();
+                    img.color = Color.white;
+                }
+            }
 
             BuildBlanksRow(level.MovieTitle);
             RefreshHintButtons();
@@ -112,45 +152,65 @@ namespace BadMovieClues.UI
 
         private void BuildBlanksRow(string title)
         {
-            foreach (Transform child in blanksRoot) Destroy(child.gameObject);
+            _tilePool.Clear();
 
             _tileLabels = new TextMeshProUGUI[title.Length];
             _tileRoots = new RectTransform[title.Length];
 
             for (var i = 0; i < title.Length; i++)
             {
-                var tileGo = new GameObject($"Tile_{i}", typeof(RectTransform), typeof(Image));
-                tileGo.transform.SetParent(blanksRoot, false);
-                var tileImage = tileGo.GetComponent<Image>();
+                var tileImage = _tilePool.Get(() =>
+                {
+                    var tileGo = new GameObject("Tile", typeof(RectTransform), typeof(Image));
+                    var image = tileGo.GetComponent<Image>();
+                    
+                    var labelGo = new GameObject("Label", typeof(RectTransform));
+                    labelGo.transform.SetParent(tileGo.transform, false);
+                    var tmp = labelGo.AddComponent<TextMeshProUGUI>();
+                    tmp.alignment = TextAlignmentOptions.Center;
+                    tmp.fontSize = 46;
+                    tmp.fontStyle = FontStyles.Bold;
+                    
+                    var labelRt = (RectTransform)labelGo.transform;
+                    labelRt.anchorMin = Vector2.zero;
+                    labelRt.anchorMax = Vector2.one;
+                    labelRt.offsetMin = Vector2.zero;
+                    labelRt.offsetMax = Vector2.zero;
+                    
+                    return image;
+                });
+
+                tileImage.gameObject.name = $"Tile_{i}";
                 if (theme != null) theme.ApplyTile(tileImage, isKeyboardKey: false);
                 else tileImage.enabled = false;
 
-                var labelGo = new GameObject("Label", typeof(RectTransform));
-                labelGo.transform.SetParent(tileGo.transform, false);
-                var tmp = labelGo.AddComponent<TextMeshProUGUI>();
-                tmp.alignment = TextAlignmentOptions.Center;
-                tmp.fontSize = 46;
-                tmp.fontStyle = FontStyles.Bold;
-                tmp.color = theme != null ? theme.AccentMagenta : Color.black;
-                // A thin dark outline gives the revealed letters some pop
-                // against the tile instead of sitting flat - cheap TMP
-                // material tweak, no new art needed.
-                tmp.outlineWidth = 0.2f;
-                tmp.outlineColor = theme != null ? (Color32)theme.BackgroundTop : new Color32(0x2A, 0x1A, 0x3E, 0xFF);
-                tmp.text = char.IsLetter(title[i]) ? BlankChar.ToString() : title[i].ToString();
-                var labelRt = (RectTransform)labelGo.transform;
-                labelRt.anchorMin = Vector2.zero;
-                labelRt.anchorMax = Vector2.one;
-                labelRt.offsetMin = Vector2.zero;
-                labelRt.offsetMax = Vector2.zero;
+                Tween.StopAll(tileImage);
+                Tween.StopAll(tileImage.transform);
+                tileImage.transform.localScale = Vector3.one;
 
-                _tileLabels[i] = tmp;
-                _tileRoots[i] = (RectTransform)tileGo.transform;
+                if (char.IsLetter(title[i]))
+                {
+                    Tween.Alpha(tileImage, startValue: 0.6f, endValue: 1.0f, duration: 1.5f, cycles: -1, cycleMode: CycleMode.Yoyo);
+                }
+
+                var label = tileImage.transform.GetChild(0).GetComponent<TextMeshProUGUI>();
+                if (theme != null)
+                {
+                    label.color = theme.AccentMagenta;
+                    if (theme.HeadingFont != null) label.font = theme.HeadingFont;
+                }
+                else
+                {
+                    label.color = Color.black;
+                }
+                label.outlineWidth = 0.2f;
+                label.outlineColor = theme != null ? (Color32)theme.BackgroundTop : new Color32(0x2A, 0x1A, 0x3E, 0xFF);
+                label.text = char.IsLetter(title[i]) ? BlankChar.ToString() : title[i].ToString();
+
+                _tileLabels[i] = label;
+                _tileRoots[i] = (RectTransform)tileImage.transform;
             }
 
-            // Placeholder that can't match BlankChar or any real character, so
-            // the first RefreshBlanks() never spuriously pops anything that
-            // was already revealed from the start (spaces/punctuation).
             _previousMaskedDisplay = new string('\0', title.Length);
             RefreshBlanks();
         }
@@ -167,7 +227,16 @@ namespace BadMovieClues.UI
 
                 if (oldChar == BlankChar && newChar != BlankChar)
                 {
+                    var tileImage = _tileRoots[i].GetComponent<Image>();
+                    Tween.StopAll(tileImage);
+                    if (theme != null) tileImage.color = theme.NeutralLight;
+                    else tileImage.color = Color.white;
+                    
                     PlayPop(_tileRoots[i]);
+
+                    // Glow flash on the newly revealed letter text
+                    var text = _tileLabels[i];
+                    Tween.Color(text, endValue: theme != null ? theme.AccentGold : Color.yellow, duration: 0.15f, cycles: 2, cycleMode: CycleMode.Yoyo);
                 }
             }
             _previousMaskedDisplay = newDisplay;
@@ -175,9 +244,6 @@ namespace BadMovieClues.UI
 
         private void SetStatus(string status)
         {
-            // Won/Lost fires synchronously from inside Guess(), before the
-            // caller's own RefreshBlanks() runs - without this, the letter
-            // that just won the round never visually appears.
             RefreshBlanks();
             descriptionText.text = $"{_controller.CurrentLevel.BadDescription}\n\n{status}";
             foreach (var button in _letterButtons.Values) button.interactable = false;
@@ -186,15 +252,18 @@ namespace BadMovieClues.UI
 
         private void OnWon()
         {
+            AppRoot.Instance.Haptics?.VibrateWin();
             SetStatus("YOU WIN!");
             for (var i = 0; i < _tileRoots.Length; i++) PlayPop(_tileRoots[i], delay: i * 0.05f);
 
+            bool isNewBest = _controller.StarsEarned > _previousStars;
             _levelCompleteScreen.ShowWon(_controller.CurrentLevel.MovieTitle, _controller.StarsEarned,
-                _controller.Config.LevelCompleteReward, OnNextClicked);
+                _controller.Config.LevelCompleteReward, isNewBest, OnNextClicked);
         }
 
         private void OnLost()
         {
+            AppRoot.Instance.Haptics?.VibrateFailure();
             SetStatus("YOU LOSE!");
             _levelCompleteScreen.ShowLost(_controller.CurrentLevel.MovieTitle, OnRetryClicked, OnMenuClicked);
         }
@@ -202,21 +271,27 @@ namespace BadMovieClues.UI
         private void OnNextClicked()
         {
             AppRoot.Instance.SelectedLevelIndex = _controller.CurrentIndex + 1;
-            _ = ScreenNavigator.Instance.LoadScene("Gameplay");
+            _ = ScreenNavigator.Instance.LoadScene("Gameplay", TransitionType.SlideLeft);
         }
 
         private void OnRetryClicked()
         {
             AppRoot.Instance.SelectedLevelIndex = _controller.CurrentIndex;
-            _ = ScreenNavigator.Instance.LoadScene("Gameplay");
+            _ = ScreenNavigator.Instance.LoadScene("Gameplay", TransitionType.Fade);
         }
 
-        private void OnMenuClicked() => _ = ScreenNavigator.Instance.LoadScene("MainMenu");
+        private void OnMenuClicked() => _ = ScreenNavigator.Instance.LoadScene("MainMenu", TransitionType.SlideRight);
 
         private void OnPictureHintClicked()
         {
             PlaySquish(pictureHintButton.transform);
-            if (_pictureRevealed || !_controller.TryRevealPictureHint()) return;
+            if (_pictureRevealed) return;
+            
+            var fromPos = GetCanvasLocalPos((RectTransform)pictureHintButton.transform);
+            if (!_controller.TryRevealPictureHint()) return;
+
+            // Trigger flying coin burst
+            TriggerCoinBurst(fromPos);
 
             _pictureRevealed = true;
             pictureImage.sprite = _pendingPictureSprite;
@@ -228,7 +303,13 @@ namespace BadMovieClues.UI
         private void OnCharacterHintClicked()
         {
             PlaySquish(characterHintButton.transform);
-            if (_characterRevealed || !_controller.TryRevealCharacterHint()) return;
+            if (_characterRevealed) return;
+
+            var fromPos = GetCanvasLocalPos((RectTransform)characterHintButton.transform);
+            if (!_controller.TryRevealCharacterHint()) return;
+
+            // Trigger flying coin burst
+            TriggerCoinBurst(fromPos);
 
             _characterRevealed = true;
             characterClueText.text = _controller.CurrentLevel.CharacterClue;
@@ -239,11 +320,32 @@ namespace BadMovieClues.UI
         private void OnLetterHintClicked()
         {
             PlaySquish(letterHintButton.transform);
+            
+            var fromPos = GetCanvasLocalPos((RectTransform)letterHintButton.transform);
             if (!_controller.TryRevealLetterHint()) return;
-            if (_controller.CurrentPuzzle.IsOver) return; // SetStatus already refreshed everything
+
+            // Trigger flying coin burst
+            TriggerCoinBurst(fromPos);
+
+            if (_controller.CurrentPuzzle.IsOver) return;
 
             RefreshBlanks();
             RefreshHintButtons();
+        }
+
+        private void TriggerCoinBurst(Vector2 fromPos)
+        {
+            if (canvasRoot != null && coinBalanceText != null)
+            {
+                var toPos = GetCanvasLocalPos((RectTransform)coinBalanceText.transform);
+                ConfettiBurst.PlayCoinBurst(canvasRoot, fromPos, toPos, 12);
+            }
+        }
+
+        private Vector2 GetCanvasLocalPos(RectTransform element)
+        {
+            if (canvasRoot == null || element == null) return Vector2.zero;
+            return canvasRoot.InverseTransformPoint(element.position);
         }
 
         private void RefreshHintButtons()
@@ -252,32 +354,24 @@ namespace BadMovieClues.UI
             var config = _controller.Config;
             var over = _controller.CurrentPuzzle?.IsOver ?? true;
 
-            coinBalanceText.text = $"Coins: {balance}";
+            coinBalanceText.text = $"● {balance}";
             var hasImage = _pendingPictureSprite != null;
             pictureHintButton.interactable = !over && !_pictureRevealed && hasImage && balance >= config.PictureHintCost;
             characterHintButton.interactable = !over && !_characterRevealed && balance >= config.CharacterHintCost;
             letterHintButton.interactable = !over && balance >= config.LetterHintCost;
 
-            // Gating on hasImage (not just ImageKey being non-empty) also
-            // protects against a resolved-but-null sprite (a real bug found
-            // on-device: some levels charged the picture hint cost with
-            // nothing to show for it, because nothing prevented spending on
-            // a level with no loadable image in the first place).
             pictureHintButtonLabel.text = !hasImage
-                ? "Picture (no image)"
+                ? "🖼 Picture (no image)"
                 : HintLabel("Picture", config.PictureHintCost, balance, _pictureRevealed);
             characterHintButtonLabel.text = HintLabel("Character", config.CharacterHintCost, balance, _characterRevealed);
             letterHintButtonLabel.text = HintLabel("Letter", config.LetterHintCost, balance, revealed: false);
         }
 
-        // Surfaces *why* a hint button is greyed out (already revealed vs. can't
-        // afford it) - a disabled Button fires no onClick, so this label is the
-        // only feedback the player gets; a plain grey button with no reason read
-        // as broken during real testing.
         private static string HintLabel(string name, int cost, int balance, bool revealed)
         {
-            if (revealed) return $"{name} ({cost})";
-            return balance >= cost ? $"{name} ({cost})" : $"{name} ({cost}) - need {cost - balance} more";
+            string icon = name == "Picture" ? "🖼 " : (name == "Character" ? "👤 " : "🔤 ");
+            if (revealed) return $"{icon}{name} ({cost})";
+            return balance >= cost ? $"{icon}{name} ({cost})" : $"{icon}{name} ({cost}) - need {cost - balance} more";
         }
 
         private static readonly string[] QwertyRows = { "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM" };
@@ -310,6 +404,8 @@ namespace BadMovieClues.UI
                     label.alignment = TextAlignmentOptions.Center;
                     label.color = Color.black;
                     label.fontSize = 28;
+                    if (theme != null && theme.BodyFont != null) label.font = theme.BodyFont;
+                    
                     var labelRt = (RectTransform)labelGo.transform;
                     labelRt.anchorMin = Vector2.zero;
                     labelRt.anchorMax = Vector2.one;
@@ -332,7 +428,25 @@ namespace BadMovieClues.UI
             if (outcome != GuessOutcome.Correct && outcome != GuessOutcome.Incorrect) return;
 
             button.interactable = false;
-            if (_controller.CurrentPuzzle.IsOver) return; // SetStatus already refreshed everything
+            
+            // Visual QWERTY keyboard feedback based on correctness
+            var keyImage = button.GetComponent<Image>();
+            if (outcome == GuessOutcome.Correct)
+            {
+                if (theme != null)
+                {
+                    Tween.Color(keyImage, endValue: theme.AccentGold, duration: 0.15f, cycles: 2, cycleMode: CycleMode.Yoyo);
+                }
+            }
+            else
+            {
+                if (theme != null)
+                {
+                    Tween.Color(keyImage, endValue: theme.DangerRed, duration: 0.15f, cycles: 2, cycleMode: CycleMode.Yoyo);
+                }
+            }
+
+            if (_controller.CurrentPuzzle.IsOver) return;
 
             RefreshBlanks();
             RefreshHintButtons();
@@ -340,6 +454,7 @@ namespace BadMovieClues.UI
 
         private void PlaySquish(Transform target)
         {
+            AppRoot.Instance.Haptics?.VibrateClick();
             _audioService?.PlayOneShot(clickSound);
             Tween.Scale(target, endValue: SquishScale, duration: SquishDuration, cycles: 2, cycleMode: CycleMode.Yoyo);
         }

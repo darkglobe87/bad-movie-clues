@@ -10,22 +10,8 @@ using UnityEngine.UI;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Settings panel: Reduced Effects toggle, mute toggle, Reset Progress,
-    /// Restore Purchases (stub - IPurchaseService doesn't exist until M12),
-    /// Credits, version number. Built procedurally by MainMenuScreen, same
-    /// pattern as the rest of the UI. "Reset Progress" resets both the coin
-    /// balance and solved/unlocked level state (ProgressService, M11).
-    ///
-    /// Sizing note: every row/button/toggle below gets an explicit
-    /// LayoutElement with preferredWidth/Height instead of setting
-    /// RectTransform.sizeDelta directly. The parent VerticalLayoutGroup has
-    /// childControlHeight=true, which means it computes and overwrites each
-    /// child's size from preferred/min values - sizeDelta gets silently
-    /// ignored/overwritten in that mode (same "ControlWidth/Height owns the
-    /// size, not sizeDelta" lesson as the M6 layout bug, just the version of
-    /// it that bites when ForceExpand is deliberately off for mixed-size
-    /// rows). Skipping LayoutElement here is what produced giant toggle
-    /// boxes and invisible buttons on first pass.
+    /// Settings panel: Sound Effects, Vibration Haptics, and Reduced Effects toggles,
+    /// Reset Progress, Credits, version number. Built procedurally with themed card panels.
     /// </summary>
     public class SettingsScreen : MonoBehaviour
     {
@@ -39,6 +25,7 @@ namespace BadMovieClues.UI
 
         private Toggle _reducedEffectsToggle;
         private Toggle _muteToggle;
+        private Toggle _hapticsToggle;
         private RectTransform _creditsPanel;
         private RectTransform _resetConfirmPanel;
 
@@ -58,38 +45,65 @@ namespace BadMovieClues.UI
         public void Refresh()
         {
             _reducedEffectsToggle.SetIsOnWithoutNotify(_settings.ReducedEffects);
-            _muteToggle.SetIsOnWithoutNotify(!_settings.AudioEnabled);
+            _muteToggle.SetIsOnWithoutNotify(_settings.AudioEnabled);
+            _hapticsToggle.SetIsOnWithoutNotify(_settings.HapticsEnabled);
         }
 
         private void Build()
         {
-            var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
             panelGo.transform.SetParent(transform, false);
             var panelRt = (RectTransform)panelGo.transform;
-            panelRt.anchorMin = new Vector2(0.15f, 0.2f);
-            panelRt.anchorMax = new Vector2(0.85f, 0.8f);
+            panelRt.anchorMin = new Vector2(0.1f, 0.15f);
+            panelRt.anchorMax = new Vector2(0.9f, 0.85f);
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
 
+            var panelImage = panelGo.GetComponent<Image>();
+            if (_theme != null)
+            {
+                _theme.ApplyPanel(panelImage);
+            }
+            else
+            {
+                panelImage.color = new Color32(0x35, 0x20, 0x4E, 0xFF);
+            }
+
             var layout = panelGo.GetComponent<VerticalLayoutGroup>();
-            layout.spacing = 12;
+            layout.spacing = 10;
+            layout.padding = new RectOffset(20, 20, 20, 20);
             layout.childAlignment = TextAnchor.UpperCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
             layout.childForceExpandWidth = true;
             layout.childForceExpandHeight = false;
 
+            BuildSectionHeader(panelRt, "AUDIO & EFFECTS");
+
+            _muteToggle = BuildToggleRow(panelRt, "Sound Effects", _settings.AudioEnabled,
+                v => _settings.AudioEnabled = v);
+            _hapticsToggle = BuildToggleRow(panelRt, "Vibration Haptics", _settings.HapticsEnabled,
+                v => _settings.HapticsEnabled = v);
             _reducedEffectsToggle = BuildToggleRow(panelRt, "Reduced Effects", _settings.ReducedEffects,
                 v => _settings.ReducedEffects = v);
-            _muteToggle = BuildToggleRow(panelRt, "Mute Audio", !_settings.AudioEnabled,
-                v => _settings.AudioEnabled = !v);
+
+            BuildSectionHeader(panelRt, "SYSTEM DATA");
 
             BuildButton(panelRt, "Reset Progress", OnResetProgressClicked);
             BuildButton(panelRt, "Restore Purchases (coming soon)", null, interactable: false);
             BuildButton(panelRt, "Credits", OnCreditsClicked);
 
-            var version = MainMenuScreen.UIText(panelRt, $"v{Application.version}", 18, FontStyles.Normal);
-            AddFixedHeight(version.gameObject, 40);
-            if (_theme != null) version.color = _theme.NeutralLight;
+            var version = MainMenuScreen.UIText(panelRt, $"v{Application.version}", 16, FontStyles.Normal);
+            AddFixedHeight(version.gameObject, 24);
+            if (_theme != null)
+            {
+                version.color = _theme.NeutralLight;
+                if (_theme.BodyFont != null) version.font = _theme.BodyFont;
+            }
+
+            if (_theme != null)
+            {
+                _theme.CreateSeparator(panelRt, 2f);
+            }
 
             BuildButton(panelRt, "< Back", OnBackClicked);
 
@@ -105,6 +119,21 @@ namespace BadMovieClues.UI
             return le;
         }
 
+        private void BuildSectionHeader(Transform parent, string title)
+        {
+            var go = new GameObject($"Header_{title}", typeof(RectTransform));
+            go.transform.SetParent(parent, false);
+            AddFixedHeight(go, 28);
+
+            var text = MainMenuScreen.UIText(go.transform, title, 14, FontStyles.Bold);
+            if (_theme != null && _theme.HeadingFont != null) text.font = _theme.HeadingFont;
+            MainMenuScreen.StretchFull(text.rectTransform);
+            text.alignment = TextAlignmentOptions.MidlineLeft;
+            
+            if (_theme != null) text.color = _theme.AccentGold;
+            else text.color = Color.yellow;
+        }
+
         private Toggle BuildToggleRow(Transform parent, string label, bool initialValue, Action<bool> onChanged)
         {
             var rowGo = new GameObject($"Toggle_{label}", typeof(RectTransform), typeof(HorizontalLayoutGroup));
@@ -116,22 +145,32 @@ namespace BadMovieClues.UI
             rowLayout.childControlHeight = true;
             rowLayout.childForceExpandWidth = false;
             rowLayout.childForceExpandHeight = true;
-            AddFixedHeight(rowGo, 56);
+            AddFixedHeight(rowGo, 48);
 
             var toggleGo = new GameObject("Toggle", typeof(RectTransform), typeof(Image), typeof(Toggle));
             toggleGo.transform.SetParent(rowGo.transform, false);
             var toggleLe = toggleGo.AddComponent<LayoutElement>();
-            toggleLe.preferredWidth = 50;
-            toggleLe.preferredHeight = 50;
-            toggleLe.minWidth = 50;
-            toggleLe.minHeight = 50;
+            toggleLe.preferredWidth = 44;
+            toggleLe.preferredHeight = 44;
+            toggleLe.minWidth = 44;
+            toggleLe.minHeight = 44;
+            
             var bgImage = toggleGo.GetComponent<Image>();
+            if (_theme != null && _theme.ToggleBackgroundSprite != null)
+            {
+                bgImage.sprite = _theme.ToggleBackgroundSprite;
+                bgImage.type = Image.Type.Sliced;
+            }
             bgImage.color = Color.white;
 
             var checkGo = new GameObject("Checkmark", typeof(RectTransform), typeof(Image));
             checkGo.transform.SetParent(toggleGo.transform, false);
             MainMenuScreen.StretchFull((RectTransform)checkGo.transform);
             var checkImage = checkGo.GetComponent<Image>();
+            if (_theme != null && _theme.ToggleCheckmarkSprite != null)
+            {
+                checkImage.sprite = _theme.ToggleCheckmarkSprite;
+            }
             checkImage.color = _theme != null ? _theme.AccentGold : Color.green;
 
             var toggle = toggleGo.GetComponent<Toggle>();
@@ -147,7 +186,8 @@ namespace BadMovieClues.UI
             var labelGo = new GameObject("Label", typeof(RectTransform));
             labelGo.transform.SetParent(rowGo.transform, false);
             labelGo.AddComponent<LayoutElement>().flexibleWidth = 1;
-            var labelText = MainMenuScreen.UIText(labelGo.transform, label, 24, FontStyles.Normal);
+            var labelText = MainMenuScreen.UIText(labelGo.transform, label, 20, FontStyles.Normal);
+            if (_theme != null && _theme.BodyFont != null) labelText.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(labelText.rectTransform);
             labelText.alignment = TextAlignmentOptions.MidlineLeft;
             if (_theme != null) labelText.color = _theme.NeutralLight;
@@ -159,12 +199,13 @@ namespace BadMovieClues.UI
         {
             var buttonGo = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
             buttonGo.transform.SetParent(parent, false);
-            AddFixedHeight(buttonGo, 56);
+            AddFixedHeight(buttonGo, 48);
             var button = buttonGo.GetComponent<Button>();
             button.interactable = interactable;
             if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
 
-            var text = MainMenuScreen.UIText(buttonGo.transform, label, 22, FontStyles.Normal);
+            var text = MainMenuScreen.UIText(buttonGo.transform, label, 20, FontStyles.Normal);
+            if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
 
             if (onClick != null)
@@ -186,12 +227,16 @@ namespace BadMovieClues.UI
             _creditsPanel.anchorMin = new Vector2(0.15f, 0.3f);
             _creditsPanel.anchorMax = new Vector2(0.85f, 0.7f);
             _creditsPanel.offsetMin = _creditsPanel.offsetMax = Vector2.zero;
-            if (_theme != null) go.GetComponent<Image>().color = _theme.BackgroundBottom;
+            
+            var img = go.GetComponent<Image>();
+            if (_theme != null) _theme.ApplyPanel(img);
+            else img.color = new Color32(0x23, 0x14, 0x34, 0xFF);
 
             var text = MainMenuScreen.UIText(_creditsPanel, "Bad Movie Clues\n\nBad descriptions & bad art by the owner.\nBuilt with Unity, PrimeTween, and the Kenney UI Pack.",
-                20, FontStyles.Normal);
+                18, FontStyles.Normal);
+            if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             var textRt = text.rectTransform;
-            textRt.anchorMin = new Vector2(0.05f, 0.2f);
+            textRt.anchorMin = new Vector2(0.05f, 0.25f);
             textRt.anchorMax = new Vector2(0.95f, 0.95f);
             textRt.offsetMin = textRt.offsetMax = Vector2.zero;
             if (_theme != null) text.color = _theme.NeutralLight;
@@ -199,12 +244,13 @@ namespace BadMovieClues.UI
             var closeGo = new GameObject("Close", typeof(RectTransform), typeof(Image), typeof(Button));
             closeGo.transform.SetParent(_creditsPanel, false);
             var closeRt = (RectTransform)closeGo.transform;
-            closeRt.anchorMin = new Vector2(0.3f, 0.03f);
-            closeRt.anchorMax = new Vector2(0.7f, 0.15f);
+            closeRt.anchorMin = new Vector2(0.35f, 0.05f);
+            closeRt.anchorMax = new Vector2(0.65f, 0.2f);
             closeRt.offsetMin = closeRt.offsetMax = Vector2.zero;
             var closeButton = closeGo.GetComponent<Button>();
             if (_theme != null) _theme.ApplyButton(closeButton, closeGo.GetComponent<Image>());
-            var closeText = MainMenuScreen.UIText(closeGo.transform, "Close", 20, FontStyles.Normal);
+            var closeText = MainMenuScreen.UIText(closeGo.transform, "Close", 18, FontStyles.Normal);
+            if (_theme != null && _theme.BodyFont != null) closeText.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(closeText.rectTransform);
             closeButton.onClick.AddListener(() =>
             {
@@ -223,13 +269,17 @@ namespace BadMovieClues.UI
             _resetConfirmPanel.anchorMin = new Vector2(0.15f, 0.35f);
             _resetConfirmPanel.anchorMax = new Vector2(0.85f, 0.65f);
             _resetConfirmPanel.offsetMin = _resetConfirmPanel.offsetMax = Vector2.zero;
-            if (_theme != null) go.GetComponent<Image>().color = _theme.BackgroundBottom;
+            
+            var img = go.GetComponent<Image>();
+            if (_theme != null) _theme.ApplyPanel(img);
+            else img.color = new Color32(0x23, 0x14, 0x34, 0xFF);
 
             var text = MainMenuScreen.UIText(_resetConfirmPanel,
                 "Reset all progress?\nThis clears your coin balance\nand every solved/unlocked level.",
-                20, FontStyles.Normal);
+                18, FontStyles.Normal);
+            if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             var textRt = text.rectTransform;
-            textRt.anchorMin = new Vector2(0.05f, 0.4f);
+            textRt.anchorMin = new Vector2(0.05f, 0.45f);
             textRt.anchorMax = new Vector2(0.95f, 0.95f);
             textRt.offsetMin = textRt.offsetMax = Vector2.zero;
             if (_theme != null) text.color = _theme.NeutralLight;
@@ -237,8 +287,8 @@ namespace BadMovieClues.UI
             var buttonRowGo = new GameObject("Buttons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             buttonRowGo.transform.SetParent(_resetConfirmPanel, false);
             var buttonRowRt = (RectTransform)buttonRowGo.transform;
-            buttonRowRt.anchorMin = new Vector2(0.1f, 0.05f);
-            buttonRowRt.anchorMax = new Vector2(0.9f, 0.3f);
+            buttonRowRt.anchorMin = new Vector2(0.15f, 0.08f);
+            buttonRowRt.anchorMax = new Vector2(0.85f, 0.32f);
             buttonRowRt.offsetMin = buttonRowRt.offsetMax = Vector2.zero;
             var buttonRowLayout = buttonRowGo.GetComponent<HorizontalLayoutGroup>();
             buttonRowLayout.spacing = 12;
@@ -266,6 +316,10 @@ namespace BadMovieClues.UI
 
         private void OnBackClicked() => _onClose();
 
-        private void PlayClick() => AppRoot.Instance.AudioService.PlayOneShot(_clickSound);
+        private void PlayClick()
+        {
+            AppRoot.Instance.Haptics?.VibrateClick();
+            AppRoot.Instance.AudioService.PlayOneShot(_clickSound);
+        }
     }
 }

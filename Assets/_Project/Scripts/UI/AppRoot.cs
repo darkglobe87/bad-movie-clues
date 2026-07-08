@@ -24,10 +24,11 @@ namespace BadMovieClues.UI
         public GameConfig Config { get; private set; }
         public IContentProvider ContentProvider { get; private set; }
         public IAudioService AudioService { get; private set; }
-        public ParticleSystem DustParticles { get; private set; }
+        public AmbientDustBackground.DustSystems DustParticles { get; private set; }
         public IUserSettings Settings { get; private set; }
         public IProgressService Progress { get; private set; }
         public IPurchaseService Purchases { get; private set; }
+        public IHapticsService Haptics { get; private set; }
 
         /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
         /// read by GameBootstrap instead of always loading index 0.</summary>
@@ -60,6 +61,7 @@ namespace BadMovieClues.UI
             DustParticles = AmbientDustBackground.Build(transform);
             Progress = new ProgressService(SaveService);
             Purchases = new StubPurchaseService(Currency);
+            Haptics = new AndroidHapticsService();
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.
@@ -72,6 +74,7 @@ namespace BadMovieClues.UI
         {
             AudioService.Enabled = Settings.AudioEnabled;
             AmbientDustBackground.SetReducedEffects(DustParticles, Settings.ReducedEffects);
+            if (Haptics != null) Haptics.Enabled = Settings.HapticsEnabled;
         }
     }
 }

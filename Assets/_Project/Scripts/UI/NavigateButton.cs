@@ -8,10 +8,11 @@ namespace BadMovieClues.UI
     public class NavigateButton : MonoBehaviour
     {
         [SerializeField] private string targetScene;
+        [SerializeField] private TransitionType transition = TransitionType.Fade;
 
         private void Awake()
         {
-            GetComponent<Button>().onClick.AddListener(() => _ = ScreenNavigator.Instance.LoadScene(targetScene));
+            GetComponent<Button>().onClick.AddListener(() => _ = ScreenNavigator.Instance.LoadScene(targetScene, transition));
         }
     }
 }

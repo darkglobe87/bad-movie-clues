@@ -6,6 +6,7 @@ namespace BadMovieClues.Services
     {
         bool ReducedEffects { get; set; }
         bool AudioEnabled { get; set; }
+        bool HapticsEnabled { get; set; }
         event Action Changed;
     }
 }
