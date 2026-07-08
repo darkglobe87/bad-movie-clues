@@ -70,9 +70,34 @@ to `Data`'s image loading). `Editor` may reference `Data`/`Core` but nothing
 may reference `Editor` (it's excluded from player builds).
 
 ## Milestones
-See the plan file this project was scaffolded from for the full milestone
-list (M0 setup → M7 Android build + real SDKs). Work through them in order;
-each has its own verification step.
+16 total, M0–M15, worked in order with a verification step after each (see
+the per-milestone "Setup status" sections below for what actually happened,
+including any bugs found along the way). Full prompt text for each lives in
+the plan file at
+`C:\Users\matth\.claude\plans\i-ve-created-a-game-groovy-gadget.md` (local
+only, not in this repo) — this list is just the index so it's visible from
+GitHub/mobile too.
+
+- M0 — Project setup & conventions
+- M1 — Content model + authoring tool + bundled provider
+- M2 — Pure puzzle logic + tests
+- M3 — Core game loop (playable in editor)
+- M4 — Economy + hint system
+- M5 — Polished UI & juice *(completes the original "editor vertical slice")*
+- M6 — Layout bugfix + theme foundation
+- M7 — Skin the gameplay HUD + click SFX
+- M8 — Persistent AppRoot + navigation skeleton
+- M9 — Dust particle ambient background
+- M10 — Main menu + splash + settings *(current)*
+- M11 — Level select + progression
+- M12 — Store shell (stubbed)
+- M13 — Level-complete celebration (2D)
+- M14 — Remote content pipeline *(was M6 before the M6–M13 art pass was inserted ahead of it)*
+- M15 — Android build + monetization/liveops SDKs *(was M7)*
+
+M6–M13 is a Visual/Art/UX pass added after M5 shipped a playable-but-plain
+"editor vertical slice"; it bumped the original M6 (remote content) and M7
+(Android + real SDKs) to M14/M15. See "Visual / Art / UX Pass" below for why.
 
 ## Content notes
 - `Assets/_Project/Content/StarterCatalog.json` is seeded from the owner's
