@@ -75,11 +75,11 @@ namespace BadMovieClues.UI
                 var delay = Random.Range(0f, 0.15f);
 
                 Sequence.Create()
+                    .ChainDelay(delay)
                     .Group(Tween.UIAnchoredPosition(rt, endValue: peakPosition, duration: 0.25f, ease: Ease.OutQuad))
                     .Chain(Tween.UIAnchoredPosition(rt, endValue: toPosition, duration: duration - 0.25f, ease: Ease.InQuad))
                     .Group(Tween.Scale(rt, endValue: 0.4f, duration: duration, ease: Ease.InCubic))
-                    .Group(Tween.Alpha(image, endValue: 0f, duration: 0.1f, startDelay: duration - 0.1f))
-                    .SetDelay(delay);
+                    .Group(Tween.Alpha(image, endValue: 0f, duration: 0.1f, startDelay: duration - 0.1f));
 
                 Object.Destroy(coinGo, duration + delay + 0.1f);
             }

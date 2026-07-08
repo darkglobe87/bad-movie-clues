@@ -81,7 +81,7 @@ namespace BadMovieClues.UI
                 // Play cinematic letter stagger-in sequence
                 for (int i = 0; i < titleText.Length; i++)
                 {
-                    Tween.Scale(letterGos[i].transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: i * 0.04f);
+                    _ = Tween.Scale(letterGos[i].transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: i * 0.04f);
                 }
 
                 // Wait for letters to fully stagger in
@@ -96,7 +96,7 @@ namespace BadMovieClues.UI
                 ConfettiBurst.Play(canvasRoot, 25);
 
                 // Slide tagline up & fade in
-                Tween.LocalPosition(tagline.transform, endValue: Vector3.zero, duration: 0.6f, ease: Ease.OutCubic);
+                _ = Tween.LocalPosition(tagline.transform, endValue: Vector3.zero, duration: 0.6f, ease: Ease.OutCubic);
                 await Tween.Alpha(tagCanvasGroup, endValue: 1f, duration: 0.6f);
 
                 // Main delay before auto-advance

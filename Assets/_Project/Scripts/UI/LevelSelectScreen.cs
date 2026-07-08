@@ -109,7 +109,7 @@ namespace BadMovieClues.UI
 
                 var label = MainMenuScreen.UIText(cardGo.transform, "", 16, FontStyles.Normal);
                 MainMenuScreen.StretchFull(label.rectTransform);
-                label.enableWordWrapping = true;
+                label.textWrappingMode = TextWrappingModes.Normal;
 
                 var card = cardGo.AddComponent<LevelCard>();
                 card.Setup(button, label, _theme);
