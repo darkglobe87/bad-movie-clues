@@ -209,11 +209,19 @@ namespace BadMovieClues.UI
             var over = _controller.CurrentPuzzle?.IsOver ?? true;
 
             coinBalanceText.text = $"Coins: {balance}";
-            pictureHintButton.interactable = !over && !_pictureRevealed && balance >= config.PictureHintCost;
+            var hasImage = _pendingPictureSprite != null;
+            pictureHintButton.interactable = !over && !_pictureRevealed && hasImage && balance >= config.PictureHintCost;
             characterHintButton.interactable = !over && !_characterRevealed && balance >= config.CharacterHintCost;
             letterHintButton.interactable = !over && balance >= config.LetterHintCost;
 
-            pictureHintButtonLabel.text = HintLabel("Picture", config.PictureHintCost, balance, _pictureRevealed);
+            // Gating on hasImage (not just ImageKey being non-empty) also
+            // protects against a resolved-but-null sprite (a real bug found
+            // on-device: some levels charged the picture hint cost with
+            // nothing to show for it, because nothing prevented spending on
+            // a level with no loadable image in the first place).
+            pictureHintButtonLabel.text = !hasImage
+                ? "Picture (no image)"
+                : HintLabel("Picture", config.PictureHintCost, balance, _pictureRevealed);
             characterHintButtonLabel.text = HintLabel("Character", config.CharacterHintCost, balance, _characterRevealed);
             letterHintButtonLabel.text = HintLabel("Letter", config.LetterHintCost, balance, revealed: false);
         }

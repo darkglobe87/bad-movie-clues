@@ -29,9 +29,17 @@ public static class BuildAndroidTest
         if (!string.IsNullOrEmpty(buildDir) && !Directory.Exists(buildDir))
             Directory.CreateDirectory(buildDir);
 
+        // Build every scene registered in Build Settings (Splash -> MainMenu
+        // -> Gameplay as of M10), not a single hardcoded scene - this used
+        // to point at "Bootstrap.unity", which was renamed to Gameplay.unity
+        // back in M8 and hadn't existed for several milestones.
+        var scenePaths = new string[EditorBuildSettings.scenes.Length];
+        for (var i = 0; i < scenePaths.Length; i++)
+            scenePaths[i] = EditorBuildSettings.scenes[i].path;
+
         var report = BuildPipeline.BuildPlayer(new BuildPlayerOptions
         {
-            scenes = new[] { "Assets/_Project/Scenes/Bootstrap.unity" },
+            scenes = scenePaths,
             locationPathName = OutputPath,
             target = BuildTarget.Android,
             options = BuildOptions.Development

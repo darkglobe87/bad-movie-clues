@@ -40,6 +40,7 @@ namespace BadMovieClues.UI
         private Toggle _reducedEffectsToggle;
         private Toggle _muteToggle;
         private RectTransform _creditsPanel;
+        private RectTransform _resetConfirmPanel;
 
         public void Init(UITheme theme, AudioClip clickSound, IUserSettings settings,
             ICurrencyService currency, IProgressService progress, GameConfig config, Action onClose)
@@ -82,7 +83,7 @@ namespace BadMovieClues.UI
             _muteToggle = BuildToggleRow(panelRt, "Mute Audio", !_settings.AudioEnabled,
                 v => _settings.AudioEnabled = !v);
 
-            BuildButton(panelRt, "Reset Progress", OnResetProgress);
+            BuildButton(panelRt, "Reset Progress", OnResetProgressClicked);
             BuildButton(panelRt, "Restore Purchases (coming soon)", null, interactable: false);
             BuildButton(panelRt, "Credits", OnCreditsClicked);
 
@@ -93,6 +94,7 @@ namespace BadMovieClues.UI
             BuildButton(panelRt, "< Back", OnBackClicked);
 
             BuildCreditsPanel();
+            BuildResetConfirmPanel();
         }
 
         private static LayoutElement AddFixedHeight(GameObject go, float height)
@@ -213,8 +215,49 @@ namespace BadMovieClues.UI
             _creditsPanel.gameObject.SetActive(false);
         }
 
-        private void OnResetProgress()
+        private void BuildResetConfirmPanel()
         {
+            var go = new GameObject("ResetConfirmPanel", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(transform, false);
+            _resetConfirmPanel = (RectTransform)go.transform;
+            _resetConfirmPanel.anchorMin = new Vector2(0.15f, 0.35f);
+            _resetConfirmPanel.anchorMax = new Vector2(0.85f, 0.65f);
+            _resetConfirmPanel.offsetMin = _resetConfirmPanel.offsetMax = Vector2.zero;
+            if (_theme != null) go.GetComponent<Image>().color = _theme.BackgroundBottom;
+
+            var text = MainMenuScreen.UIText(_resetConfirmPanel,
+                "Reset all progress?\nThis clears your coin balance\nand every solved/unlocked level.",
+                20, FontStyles.Normal);
+            var textRt = text.rectTransform;
+            textRt.anchorMin = new Vector2(0.05f, 0.4f);
+            textRt.anchorMax = new Vector2(0.95f, 0.95f);
+            textRt.offsetMin = textRt.offsetMax = Vector2.zero;
+            if (_theme != null) text.color = _theme.NeutralLight;
+
+            var buttonRowGo = new GameObject("Buttons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            buttonRowGo.transform.SetParent(_resetConfirmPanel, false);
+            var buttonRowRt = (RectTransform)buttonRowGo.transform;
+            buttonRowRt.anchorMin = new Vector2(0.1f, 0.05f);
+            buttonRowRt.anchorMax = new Vector2(0.9f, 0.3f);
+            buttonRowRt.offsetMin = buttonRowRt.offsetMax = Vector2.zero;
+            var buttonRowLayout = buttonRowGo.GetComponent<HorizontalLayoutGroup>();
+            buttonRowLayout.spacing = 12;
+            buttonRowLayout.childControlWidth = true;
+            buttonRowLayout.childControlHeight = true;
+            buttonRowLayout.childForceExpandWidth = true;
+            buttonRowLayout.childForceExpandHeight = true;
+
+            BuildButton(buttonRowRt, "Cancel", () => _resetConfirmPanel.gameObject.SetActive(false));
+            BuildButton(buttonRowRt, "Reset", OnResetConfirmed);
+
+            _resetConfirmPanel.gameObject.SetActive(false);
+        }
+
+        private void OnResetProgressClicked() => _resetConfirmPanel.gameObject.SetActive(true);
+
+        private void OnResetConfirmed()
+        {
+            _resetConfirmPanel.gameObject.SetActive(false);
             _currency.Reset(_config.StartingBalance);
             _progress.Reset();
         }

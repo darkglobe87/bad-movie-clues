@@ -952,6 +952,79 @@ near-full-height white/green rectangles overlapping the title text.
   genuinely hide the title, confirm Reset Progress in Settings actually
   re-locks everything, and confirm progress persists after fully closing
   and reopening the app (not just navigating scenes within one session).
+
+## Bug found on-device: images not loading, inconsistent hint charging
+Reported after testing Level Select on a real device: clue images never
+appeared for any level, some levels (e.g. The Matrix) charged the picture
+hint's coin cost with nothing to show for it, other levels didn't charge
+at all when the picture hint was pressed, and Reset Progress only reset
+coins, not solved/unlocked levels.
+- **Root cause of the image bug, empirically confirmed, not just
+  theorized:** `BuildPipeline.BuildPlayer` never built Addressables
+  content first. Editor Play mode never needed this - it reads assets
+  directly from the project, no bundle required - which is exactly why
+  every prior milestone's Editor-based verification (M3's smoke test
+  loading the "jaws" level, every subsequent Play-mode check) saw images
+  load fine and never caught this: a real device build has nothing to
+  load from without an explicit `AddressableAssetSettings
+  .BuildPlayerContent()` step, and `Addressables.LoadAssetAsync` just
+  returns null for a key that's registered but never actually packed into
+  a bundle - same *class* of gap as the M9 particle-shader-stripping bug
+  (something that only matters for a real build, invisible from the
+  Editor), different mechanism. Verified directly rather than assumed: a
+  throwaway script confirmed all 7 image entries (`img_matrix` included)
+  are correctly registered in the `BadMovieClues-Images` Addressables
+  group, and that calling `BuildPlayerContent()` directly succeeds with no
+  error and produces a real catalog file on disk.
+- **Fix**: new `AddressablesBuildPreprocessor`
+  (`Assets/_Project/Scripts/Editor/`, in the proper `BadMovieClues.Editor`
+  asmdef, not a throwaway) implementing `IPreprocessBuildWithReport` -
+  fires automatically before *any* player build, local or cloud. Unity
+  Build Automation runs the same underlying build pipeline a local build
+  does, so this fires there too with zero extra configuration needed in
+  the Build Automation UI - no per-build manual step to remember.
+- **Also fixed while in there**: `BuildAndroidTest.cs` (the permanent
+  local test-build script) still pointed at `"Bootstrap.unity"`, a scene
+  renamed to `Gameplay.unity` back in M8, and only ever built that one
+  scene - now builds every scene actually in Build Settings
+  (`Splash`/`MainMenu`/`Gameplay` as of M10), matching what a real build
+  needs.
+- **Real UX bug, not just a symptom of the Addressables gap**: the Picture
+  hint button charged its coin cost on *any* level regardless of whether
+  that level actually had a loadable image - 29 of the 36 catalog movies
+  have no `imageKey` at all yet, so pressing Picture on any of those
+  spent coins for literally nothing. `GameHud.RefreshHintButtons` now
+  gates on `_pendingPictureSprite != null` (not just a non-empty
+  `ImageKey` string, so it also protects against a future/residual load
+  failure) - the button is simply non-interactable with a "Picture (no
+  image)" label on levels with nothing to show, matching the established
+  self-explanatory-disabled-state pattern.
+- **Reset Progress relocking**: re-verified by direct code read that
+  `SettingsScreen.OnResetProgress` (now `OnResetConfirmed`) already calls
+  both `_currency.Reset(...)` *and* `_progress.Reset()` - this was
+  correctly wired in the M11 commit already pushed. The report is most
+  likely a stale build (tested before the M11 push had actually been
+  pulled into a fresh cloud build) rather than a new bug - flagging this
+  honestly rather than claiming a fix for something that was already
+  correct in source.
+- **Added anyway, genuinely missing**: a confirmation popup before Reset
+  Progress executes (`SettingsScreen.BuildResetConfirmPanel` - inline
+  panel with Cancel/Reset buttons, same pattern as the Credits panel) -
+  previously a single misclick would silently wipe all progress with no
+  way back.
+- **Two feature requests deferred, not implemented now** (per explicit
+  instruction to fix bugs and move straight to M12): a "go to next level"
+  button, which M13's plan already covers (`LevelCompleteScreen`'s Next
+  button); and a star completion rating that loses a star per hint type
+  used - genuinely new scope, noted as an addendum on M13's prompt in the
+  plan file rather than half-implemented ahead of time.
+- 51 EditMode tests still passing; all fixes were build-pipeline/UI-only,
+  no puzzle/economy logic changed.
+- **Not yet verified on-device** - needs a fresh cloud build (which will
+  now include the Addressables preprocessor automatically) to confirm
+  images actually load, the no-image gating reads correctly, and the
+  confirmation popup appears before Reset Progress executes.
+
 - Next is M12: `IPurchaseService`/`StubPurchaseService` + a `StoreScreen`
   with coin-pack buttons - the exact shell M15's real Play Billing plugs
   into later without changing call sites.
