@@ -675,3 +675,59 @@ tried first and hit a real, current dead end worth remembering:
   `SettingsScreen` (Reduced Effects toggle wired to the new
   `SetReducedEffects` hook, mute toggle, reset progress, credits) backed
   by a new `IUserSettings`/`SettingsService`.
+
+## Bug found on-device: dust particles rendered as hard magenta squares
+Reported after the first real on-device build showed the M9 particles as
+solid magenta diamonds/squares instead of soft faded dots (see the actual
+screenshot in that conversation for reference).
+- **Root cause, confirmed by direct reasoning about the symptom, not
+  guesswork:** solid magenta with a hard edge is Unity's own "missing
+  shader" fallback appearance, not just an unstyled sprite. A
+  `ParticleSystem` added via `AddComponent` at runtime (as
+  `AmbientDustBackground.Build` does) gets **no material at all** - the
+  soft round default only gets assigned when a Particle System is created
+  through the Editor's GameObject > Effects menu, which explicitly wires a
+  default material as part of that menu command. Whatever fallback Unity
+  substituted internally then had its shader **stripped from the IL2CPP
+  Android build**, since nothing else in the project referenced it -
+  hence "no shader" at runtime, hence the magenta error color (also
+  explains why the color was hot pink instead of the configured pale
+  gold: the tint was never being applied by a real shader in the first
+  place).
+- **Fix:** a real, committed Material asset instead of relying on any
+  Unity-internal default. `Assets/_Project/Content/VFX/dust_particle.png`
+  is a 128x128 soft radial-alpha white dot (generated once via a
+  throwaway Editor script - `Texture2D.SetPixel` per-pixel distance
+  falloff, `EncodeToPNG`, saved as a real file - consistent with "images
+  shipped as files," just authored by a one-time tool run instead of an
+  external image editor, matching how the M1 authoring tool produces
+  ordinary content). `Assets/_Project/Content/VFX/Resources/
+  DustParticleMaterial.mat` uses the **`Sprites/Default`** shader (chosen
+  over `Particles/Standard Unlit` after actually probing which shaders
+  `Shader.Find` could resolve, rather than guessing a name upfront -
+  `Sprites/Default` won because it's simple, alpha-blends out of the box,
+  respects vertex color, and needs no keyword/mode dance the way
+  `Particles/Standard Unlit`'s custom ShaderGUI does). `AmbientDustBackground.Build`
+  now loads it via `Resources.Load<Material>("DustParticleMaterial")` and
+  assigns it to the `ParticleSystemRenderer` explicitly.
+- **Extra safety net:** `Sprites/Default` was already present in
+  ProjectSettings' "Always Included Shaders" list (checked programmatically
+  via `SerializedObject` before assuming), which is exactly the setting
+  that would prevent this exact class of bug (a shader with no static
+  scene reference getting stripped from the build) from recurring for
+  this material specifically. Worth checking this list any time a
+  runtime-only (no scene reference) shader/material is introduced.
+- 37 EditMode tests still passing; this was a rendering-only fix.
+- **Still not verified on-device** - the underlying premise (shader
+  stripping was the cause) is reasoned from the symptom and Unity's known
+  behavior, not confirmed by a second on-device build yet. Worth a fresh
+  cloud build + install to confirm the particles now render as soft faded
+  dots before considering this fully closed.
+- **Scope clarified with the user**: a comment about wanting "full 3D UI
+  conversion" turned out to mean wanting the existing 2D UI to *look* more
+  premium (depth, bevels, parallax, polish), not an actual architecture
+  change to 3D meshes/world-space UI. Confirmed via AskUserQuestion -
+  staying on uGUI + TMP, no rework planned. Worth keeping this in mind
+  through M10 onward: lean into depth cues (drop shadows, layered
+  parallax, juicier motion) within the existing 2D system rather than
+  treating this as a separate milestone.

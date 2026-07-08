@@ -69,7 +69,19 @@ namespace BadMovieClues.UI
             noise.strength = 0.08f;
             noise.frequency = 0.2f;
 
-            ps.GetComponent<ParticleSystemRenderer>().sortingOrder = -100;
+            var renderer = ps.GetComponent<ParticleSystemRenderer>();
+            renderer.sortingOrder = -100;
+            // A ParticleSystem added via AddComponent (not the Editor's
+            // GameObject > Effects menu) gets no material at all, which
+            // renders as Unity's magenta "missing shader" fallback - a hard
+            // solid square, not a soft blob. DustParticleMaterial is a real
+            // committed asset (Sprites/Default + a soft radial-alpha PNG)
+            // specifically so its shader survives IL2CPP build stripping -
+            // Resources.GetBuiltinResource<Material>("Default-Particle.mat")
+            // would still be at the mercy of whatever shader Unity picks
+            // internally being stripped if nothing else references it.
+            var material = Resources.Load<Material>("DustParticleMaterial");
+            if (material != null) renderer.material = material;
 
             ps.Play();
             return ps;
