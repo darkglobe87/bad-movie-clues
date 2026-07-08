@@ -26,6 +26,7 @@ namespace BadMovieClues.UI
 
         [SerializeField] private UITheme theme;
         [SerializeField] private AudioClip clickSound;
+        [SerializeField] private RectTransform canvasRoot;
 
         [SerializeField] private TextMeshProUGUI descriptionText;
         [SerializeField] private RectTransform blanksRoot;
@@ -42,6 +43,7 @@ namespace BadMovieClues.UI
 
         private GameController _controller;
         private IAudioService _audioService;
+        private LevelCompleteScreen _levelCompleteScreen;
         private readonly Dictionary<char, Button> _letterButtons = new Dictionary<char, Button>();
         private TextMeshProUGUI[] _tileLabels;
         private RectTransform[] _tileRoots;
@@ -56,9 +58,16 @@ namespace BadMovieClues.UI
             _audioService = audioService;
 
             controller.LevelLoaded += OnLevelLoaded;
-            controller.Won += () => SetStatus("YOU WIN!");
-            controller.Lost += () => SetStatus("YOU LOSE!");
+            controller.Won += OnWon;
+            controller.Lost += OnLost;
             controller.Currency.OnBalanceChanged += _ => RefreshHintButtons();
+
+            var completeGo = new GameObject("LevelCompleteScreen", typeof(RectTransform));
+            completeGo.transform.SetParent(canvasRoot, false);
+            MainMenuScreen.StretchFull((RectTransform)completeGo.transform);
+            _levelCompleteScreen = completeGo.AddComponent<LevelCompleteScreen>();
+            _levelCompleteScreen.Init(theme, clickSound, _audioService);
+            _levelCompleteScreen.gameObject.SetActive(false);
 
             pictureHintButton.onClick.AddListener(OnPictureHintClicked);
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
@@ -174,6 +183,35 @@ namespace BadMovieClues.UI
             foreach (var button in _letterButtons.Values) button.interactable = false;
             RefreshHintButtons();
         }
+
+        private void OnWon()
+        {
+            SetStatus("YOU WIN!");
+            for (var i = 0; i < _tileRoots.Length; i++) PlayPop(_tileRoots[i], delay: i * 0.05f);
+
+            _levelCompleteScreen.ShowWon(_controller.CurrentLevel.MovieTitle, _controller.StarsEarned,
+                _controller.Config.LevelCompleteReward, OnNextClicked);
+        }
+
+        private void OnLost()
+        {
+            SetStatus("YOU LOSE!");
+            _levelCompleteScreen.ShowLost(_controller.CurrentLevel.MovieTitle, OnRetryClicked, OnMenuClicked);
+        }
+
+        private void OnNextClicked()
+        {
+            AppRoot.Instance.SelectedLevelIndex = _controller.CurrentIndex + 1;
+            _ = ScreenNavigator.Instance.LoadScene("Gameplay");
+        }
+
+        private void OnRetryClicked()
+        {
+            AppRoot.Instance.SelectedLevelIndex = _controller.CurrentIndex;
+            _ = ScreenNavigator.Instance.LoadScene("Gameplay");
+        }
+
+        private void OnMenuClicked() => _ = ScreenNavigator.Instance.LoadScene("MainMenu");
 
         private void OnPictureHintClicked()
         {
@@ -306,10 +344,10 @@ namespace BadMovieClues.UI
             Tween.Scale(target, endValue: SquishScale, duration: SquishDuration, cycles: 2, cycleMode: CycleMode.Yoyo);
         }
 
-        private static void PlayPop(Transform target)
+        private static void PlayPop(Transform target, float delay = 0f)
         {
             target.localScale = Vector3.zero;
-            Tween.Scale(target, endValue: 1f, duration: PopDuration, ease: Ease.OutElastic);
+            Tween.Scale(target, endValue: 1f, duration: PopDuration, ease: Ease.OutElastic, startDelay: delay);
         }
     }
 }

@@ -476,6 +476,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: BadMovieClues.UI::BadMovieClues.UI.GameHud
   theme: {fileID: 11400000, guid: fedf9e89d77e3504790d59fa163cd94e, type: 2}
   clickSound: {fileID: 8300000, guid: 8ce41ffaa4fa69c49b607ed077f5014d, type: 3}
+  canvasRoot: {fileID: 614297451}
   descriptionText: {fileID: 919515026}
   blanksRoot: {fileID: 1116421763}
   pictureImage: {fileID: 1110339519}

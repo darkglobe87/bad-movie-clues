@@ -1148,10 +1148,89 @@ level number + nothing to guess.
   unlocked-unsolved/solved cards all read correctly and the new tile
   styling actually looks better, not just different.
 
-- Next is M13: `ConfettiBurst` + `LevelCompleteScreen` (win/lose
-  celebration, Next button, coins-earned count-up) - the last milestone in
-  the M6-M13 Visual/Art/UX pass before M14 (remote content) and M15
-  (Android + real SDKs). Also where the user-requested star-rating idea
-  (noted as an addendum on this milestone's prompt in the plan file,
-  flagged during M11's bugfix pass) should be scoped in detail rather than
-  left as a note.
+
+## Setup status (M13)
+- **`ConfettiBurst` deliberately isn't a real Shuriken `ParticleSystem`**,
+  despite the plan's literal "ConfettiBurst particle prefab" wording -
+  built instead from plain UI `Image`s animated with PrimeTween
+  (`Tween.UIAnchoredPosition`/`Rotation`/`Alpha`, all verified against the
+  installed PrimeTween package source before use rather than guessed).
+  Reasoning: a `ParticleSystem` renders via a *camera*, and M9 already
+  proved a camera's output can never draw on top of a Screen Space
+  Overlay `Canvas` (that's exactly why the dust background needed its own
+  dedicated low-depth camera *behind* everything). Confetti needs to
+  appear on top of the `LevelCompleteScreen` overlay itself, which is
+  Canvas content - so a real particle system would have been invisible,
+  not just differently styled. UI-space animated `Image`s were the only
+  approach that actually renders in the right place.
+- **Star rating**: `IProgressService`/`ProgressService` now store a
+  per-level star count (0-3) alongside solved/unlocked state, persisted
+  as a `Dictionary<string,int>` in the same save DTO (Newtonsoft handles
+  `Dictionary` natively, unlike `HashSet` - no array round-trip needed
+  this time). A worse replay never lowers a previously-earned rating
+  (`MarkSolved` only raises `_stars[levelId]`, matching how
+  `HighestUnlockedIndex` already never decreases). `GameController` now
+  tracks whether each of the three hint *types* (not individual letter
+  hints) was used this round via three private bools reset in
+  `LoadLevelAsync`, computes `StarsEarned = 3 - hintsUsed` on `Won`
+  (floored at 0 via `Mathf.Max`), and passes it to `MarkSolved`.
+  `LevelCard` shows `★` × stars for solved cards instead of the old
+  bare checkmark.
+- **Coin reward on win, genuinely new**: nothing previously rewarded
+  coins for *solving* a level, only spent them on hints - added
+  `GameConfig.LevelCompleteReward` (20) and `GameController` now calls
+  `Currency.Add(...)` inside the `Won` handler, giving `StoreScreen`'s
+  count-up something real to animate and making the "spend coins on
+  hints" loop actually sustainable instead of strictly one-directional.
+- **`LevelCompleteScreen`**: dim + card scale/rotate reveal with
+  `Ease.OutBack` overshoot, confetti burst, star display, coins-earned
+  text, Next/Retry/Menu buttons - built procedurally by `GameHud`, same
+  pattern as every other screen. Needed a new `[SerializeField]
+  RectTransform canvasRoot` on `GameHud` (wired to `Gameplay.unity`'s
+  `Canvas` via `SerializedObject`, which worked cleanly this time - the
+  M10 silent-failure quirk was specific to a `ScriptableObject`
+  reference, not `RectTransform`/`Component` references, confirmed by
+  reading the value back before saving regardless).
+- **Staggered reveal cascade**: `GameHud.PlayPop` gained an optional
+  `delay` parameter (`Tween.Scale(..., startDelay: delay)`, already a
+  standard param on every PrimeTween call) - on `Won`, every blanks-row
+  tile re-pops in sequence (`i * 0.05f` stagger) as a celebratory
+  flourish, regardless of whether that tile was already revealed before
+  the winning guess.
+- **Next/Retry route through the existing scene-reload architecture**,
+  not a new same-scene level-transition mechanism: `AppRoot
+  .SelectedLevelIndex` is set (`CurrentIndex + 1` for Next, unchanged for
+  Retry) and `ScreenNavigator.LoadScene("Gameplay")` reloads the scene
+  fresh, exactly like `LevelSelectScreen` already does when picking a
+  card - no new navigation pattern needed.
+- **Win/lose "sting" is a clearly-labeled placeholder**: reuses the
+  existing `click.ogg` (no dedicated win/lose SFX has been sourced) -
+  documented in the class summary as a placeholder, not presented as a
+  real sting.
+- 57 EditMode tests passing (55 previous + 2 new: worse-replay-doesn't-
+  lower-stars, better-replay-raises-stars). `GameController` itself still
+  has no direct EditMode tests (same as ever - it needs Addressables/
+  Awaitable, verified via the established throwaway-batch-script pattern
+  historically, not unit tests) - the star-earning math (`3 - hintsUsed`,
+  floored at 0) is exercised indirectly through `ProgressService`'s tests
+  taking `stars` as a plain parameter, not through `GameController`
+  itself, which is a real (pre-existing, not new) gap worth keeping in
+  mind if that calculation ever gets more complex.
+- **Not yet verified in Play mode/on-device** - this is the heaviest UI/
+  animation milestone in the whole M6-M13 pass (PrimeTween sequencing,
+  procedural confetti, overlay layering) and none of it can be checked
+  from this environment. Specifically needs a human to: win a level and
+  confirm the card reveal, confetti, star count, and coin count-up all
+  look right and the confetti actually renders on top of everything
+  (the theoretical camera-vs-Canvas reasoning above is exactly the kind
+  of thing that's obvious once you see it fail, so don't assume this is
+  correct just because it compiles); lose a level and confirm the
+  gentler card + answer reveal; confirm Next actually advances to and
+  unlocks the following level; confirm Retry reloads the same level;
+  confirm Menu returns to the main menu; confirm the staggered tile
+  cascade looks intentional and not laggy.
+- This completes the M6-M13 Visual/Art/UX pass. Next is M14: a
+  `RemoteContentProvider` implementing `IContentProvider` (fetch the
+  catalog + images from a URL, bundled catalog stays as offline
+  fallback) - renamed from the original M6 before the art pass was
+  inserted ahead of it.

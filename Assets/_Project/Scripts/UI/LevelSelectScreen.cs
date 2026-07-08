@@ -44,7 +44,7 @@ namespace BadMovieClues.UI
                 var level = _catalog.Levels[i];
                 var index = i;
                 _cards[i].Bind(level, index, _progress.IsUnlocked(index), _progress.IsSolved(level.Id),
-                    () => OnCardClicked(index));
+                    _progress.GetStars(level.Id), () => OnCardClicked(index));
             }
         }
 

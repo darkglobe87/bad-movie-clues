@@ -27,12 +27,12 @@ namespace BadMovieClues.UI
             _button.onClick.AddListener(() => _onClick?.Invoke());
         }
 
-        public void Bind(LevelData level, int index, bool unlocked, bool solved, Action onClick)
+        public void Bind(LevelData level, int index, bool unlocked, bool solved, int stars, Action onClick)
         {
             _label.text = !unlocked
                 ? $"{index + 1}\nLocked"
                 : solved
-                    ? $"{index + 1}\n{level.MovieTitle}\n✓"
+                    ? $"{index + 1}\n{level.MovieTitle}\n{new string('★', stars)}"
                     : $"{index + 1}\nPlay";
             _button.interactable = unlocked;
             _onClick = onClick;

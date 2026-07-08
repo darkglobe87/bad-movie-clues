@@ -18,6 +18,9 @@ namespace BadMovieClues.Core
         private readonly HintService _hintService;
         private readonly IProgressService _progressService;
         private LevelCatalog _catalog;
+        private bool _usedPictureHint;
+        private bool _usedCharacterHint;
+        private bool _usedLetterHint;
 
         public ICurrencyService Currency { get; }
         public GameConfig Config { get; }
@@ -26,6 +29,12 @@ namespace BadMovieClues.Core
         public PuzzleState CurrentPuzzle { get; private set; }
         public Sprite CurrentImage { get; private set; }
         public int CurrentIndex { get; private set; }
+
+        /// <summary>Set once Won fires - 3 minus one point per distinct hint
+        /// type used this round (picture/character/letter), floored at 0.
+        /// Multiple letter hints in the same round still only cost one
+        /// point, matching "lose a star if a clue [type] is used."</summary>
+        public int StarsEarned { get; private set; }
 
         public event Action<LevelData, Sprite> LevelLoaded;
         public event Action Won;
@@ -59,10 +68,18 @@ namespace BadMovieClues.Core
             CurrentLevel = level;
             CurrentImage = sprite;
             CurrentPuzzle = new PuzzleState(level.MovieTitle);
+            _usedPictureHint = false;
+            _usedCharacterHint = false;
+            _usedLetterHint = false;
+            StarsEarned = 0;
+
             var capturedIndex = CurrentIndex;
             CurrentPuzzle.Won += () =>
             {
-                _progressService.MarkSolved(level.Id, capturedIndex);
+                var hintsUsed = (_usedPictureHint ? 1 : 0) + (_usedCharacterHint ? 1 : 0) + (_usedLetterHint ? 1 : 0);
+                StarsEarned = Mathf.Max(0, 3 - hintsUsed);
+                _progressService.MarkSolved(level.Id, capturedIndex, StarsEarned);
+                Currency.Add(Config.LevelCompleteReward);
                 Won?.Invoke();
             };
             CurrentPuzzle.Lost += () => Lost?.Invoke();
@@ -77,15 +94,27 @@ namespace BadMovieClues.Core
             return CurrentPuzzle.Guess(letter);
         }
 
-        public bool TryRevealPictureHint() => _hintService.TryRevealPicture();
+        public bool TryRevealPictureHint()
+        {
+            var result = _hintService.TryRevealPicture();
+            if (result) _usedPictureHint = true;
+            return result;
+        }
 
-        public bool TryRevealCharacterHint() => _hintService.TryRevealCharacterClue();
+        public bool TryRevealCharacterHint()
+        {
+            var result = _hintService.TryRevealCharacterClue();
+            if (result) _usedCharacterHint = true;
+            return result;
+        }
 
         public bool TryRevealLetterHint()
         {
             if (CurrentPuzzle == null)
                 throw new InvalidOperationException("No level loaded yet.");
-            return _hintService.TryRevealLetterHint(CurrentPuzzle);
+            var result = _hintService.TryRevealLetterHint(CurrentPuzzle);
+            if (result) _usedLetterHint = true;
+            return result;
         }
     }
 }
