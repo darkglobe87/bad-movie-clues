@@ -23,6 +23,7 @@ namespace BadMovieClues.UI
         public GameConfig Config { get; private set; }
         public IContentProvider ContentProvider { get; private set; }
         public IAudioService AudioService { get; private set; }
+        public ParticleSystem DustParticles { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -48,6 +49,7 @@ namespace BadMovieClues.UI
             Currency = new CurrencyService(SaveService, Config.StartingBalance);
             ContentProvider = new BundledContentProvider();
             AudioService = new SimpleAudioService();
+            DustParticles = AmbientDustBackground.Build(transform);
         }
     }
 }

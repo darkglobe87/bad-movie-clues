@@ -588,5 +588,65 @@ tried first and hit a real, current dead end worth remembering:
   layout's visual row spacing nor the new hint-button "need N more" labels
   have been eyeballed by a human. Worth checking alongside M9's dust
   particles rather than a separate check-in.
-- Next is M9: build the dust-particle ambient background as a prefab on
-  `AppRoot`, so it renders behind every scene's UI with no duplication.
+
+## Setup status (M9)
+- **`AmbientDustBackground`** (UI asmdef, static builder class, not a
+  `.prefab` asset): builds a persistent background camera + a Shuriken
+  `ParticleSystem` entirely in code, matching `AppRoot`'s own
+  no-scene-placement pattern from M8 (hand-authoring a `.prefab` YAML file
+  with a fully-configured `ParticleSystem` would be far more error-prone
+  than just calling the real Unity API at runtime - same reasoning that
+  kept `BuildKeyboard`/`BuildBlanksRow` code-driven). `AppRoot.Initialize()`
+  calls `AmbientDustBackground.Build(transform)` and stores the returned
+  `ParticleSystem` as `AppRoot.Instance.DustParticles`, so a future
+  Settings screen (M10) can call the new
+  `AmbientDustBackground.SetReducedEffects(dustSystem, reduced)` hook.
+- Params follow the plan's spec directly: World simulation space, 50 max
+  particles, ~10/sec emission, 8-14s lifetime, 0.1-0.3 start speed,
+  0.15-0.5 start size, warm pale-gold start color, alpha 0→0.35→0 over
+  lifetime (fade in/out, never pops), noise strength 0.08/frequency 0.2 for
+  gentle wander, gravity modifier -0.02 for a barely-there upward drift.
+  Emission shape is a generous 10x14 world-unit box so it comfortably
+  covers any phone aspect ratio without per-device tuning.
+- **No new sprite asset needed for the first pass**: the plan calls for a
+  "soft round particle sprite" sourced as a FREE asset, but Unity's
+  built-in default `ParticleSystemRenderer` material already renders a
+  soft radial-alpha dot - close enough for an ambient effect, so M9 ships
+  with zero new asset files. Swapping in a custom sprite later (once one's
+  sourced) is a one-line material change, not a rework.
+- Background camera clears to a **solid color** (`#2A1A3E`, the palette's
+  gradient-top hex) rather than the actual AI-generated gradient texture
+  the plan describes - that asset hasn't been sourced yet. Documented as a
+  known follow-up, not a blocker; swapping a solid clear color for a
+  gradient quad behind the particles is a self-contained follow-up change.
+- **Real conflict found and fixed, not anticipated going in:** both
+  `MainMenu.unity` and `Gameplay.unity` had their own default "New Scene"
+  `Main Camera`/`Camera` GameObject (`ClearFlags = Solid Color`, unused
+  leftover from Unity's scene template - confirmed via direct read that
+  neither scene's `Canvas` (`m_RenderMode: 0` = Screen Space Overlay,
+  `m_Camera: {fileID: 0}`) ever referenced a camera). Camera render order
+  is lowest-depth-first, so the persistent background camera (depth -10)
+  would render its gradient + particles *first*, then each scene's own
+  Camera (depth 0, Solid Color clear) would immediately paint over it
+  every frame - the background would never have been visible. Fixed by
+  removing the per-scene camera GameObject from both scenes entirely (via
+  a throwaway batch script opening each scene, deleting the
+  `MainCamera`-tagged object, and saving) rather than just changing its
+  Clear Flags, since it served no other purpose. Each scene's Camera also
+  carried the only `AudioListener` in the scene - `AmbientDustBackground`'s
+  camera now carries the app's sole (persistent) `AudioListener` instead,
+  so removing the scene cameras doesn't silence `SimpleAudioService`.
+- 37 EditMode tests still passing; no test changes needed (this milestone
+  is rendering/VFX-only, no testable logic).
+- **Not yet verified in Play mode/on-device**: particle drift visibility,
+  readability of UI over the new background, and frame-rate impact on the
+  dev laptop/device all need a human eyeball per the plan's own M9
+  verification criteria - none of that can be checked from this
+  environment. Worth checking alongside M6-M8's still-unverified QWERTY
+  keyboard layout and hint-affordability labels in one combined pass
+  rather than separate check-ins.
+- Next is M10: main menu screen (Play/Store/Settings buttons, logo), a
+  short animated `Splash.unity` scene ahead of `MainMenu`, and a
+  `SettingsScreen` (Reduced Effects toggle wired to the new
+  `SetReducedEffects` hook, mute toggle, reset progress, credits) backed
+  by a new `IUserSettings`/`SettingsService`.
