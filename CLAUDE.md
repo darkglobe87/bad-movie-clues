@@ -539,5 +539,54 @@ tried first and hit a real, current dead end worth remembering:
   Gameplay is the same both times you visit it** (it starts at 100 and
   doesn't change unless you spend/earn, so seeing the same number twice is
   the actual proof persistence survived the scene change).
+- **Human verification confirmed M8 works**: coin balance persists across
+  scene transitions, fade transition looks good.
+- **Bug report investigated, turned out not to be a bug**: user reported
+  the Character hint button "didn't work" for The Wizard of Oz (the only
+  level reachable pre-M11, since it's index 0 and there's no level select
+  yet). Traced the entire path end-to-end via a throwaway batch script
+  calling `GameController` directly (same pattern as M3/M4): catalog data
+  has `characterClue: "Toto"`, `TryRevealCharacterHint()` returns `true`
+  and spends exactly 30 coins, clue text sets correctly - the pure-C# path
+  is provably correct. **Real cause, confirmed with the user**: the button
+  was visibly greyed out, i.e. correctly disabled because their coin
+  balance had already dropped below the 30-coin cost from earlier test
+  sessions - this is *new* behavior specifically because M8 made the
+  balance genuinely persist. A disabled Unity `Button` never fires
+  `onClick`, so there was zero feedback explaining *why* - indistinguishable
+  from broken. Fixed by making `GameHud.RefreshHintButtons()` rewrite each
+  hint button's label live (`"Character (30) - need 12 more"` when
+  unaffordable, plain `"Character (30)"` once affordable/revealed) instead
+  of setting the label text once in `Bind()` and never touching it again -
+  same gating logic as before, just now self-explanatory.
+  - **Batch-script gotcha found while writing the throwaway verifier**:
+    spin-waiting on an `Awaitable` with `while (!task.IsCompleted)
+    Thread.Sleep(10);` on the main thread deadlocks in `-batchmode`.
+    `Awaitable` continuations are dispatched off Unity's player loop, and
+    blocking the main thread with `Thread.Sleep` prevents that loop from
+    ever ticking again - nothing ever completes the task, so the process
+    hangs forever with no error. Fix: poll from inside an
+    `EditorApplication.update` callback instead (which the editor invokes
+    directly, unlike a blocked thread), and call `EditorApplication.Exit`
+    from there once done. Apply this pattern to any future throwaway batch
+    script that awaits Unity's `Awaitable`.
+- **Keyboard changed from alphabetical A-Z to QWERTY**, per user request.
+  `GameHud.BuildKeyboard()` now builds three rows (`QWERTYUIOP` /
+  `ASDFGHJKL` / `ZXCVBNM`) instead of one flat 26-letter sequence.
+  `KeyboardRoot`'s layout component changed from `GridLayoutGroup` (which
+  wraps by available width with no row-grouping control) to
+  `VerticalLayoutGroup` in `Gameplay.unity`; each row is now a runtime-built
+  child `RectTransform` with its own `HorizontalLayoutGroup`
+  (`ChildControlWidth/Height = true`, same as the M6 layout-overflow fix -
+  `ForceExpand` alone still doesn't resize children). Rows fill the full
+  keyboard width regardless of key count, so the 7-key bottom row has
+  visibly wider keys than the 10-key top row - intentional, matches how
+  real mobile keyboards behave, not a bug.
+- All 37 EditMode tests still passing; no test changes needed (both fixes
+  are UI-only/scene-only, no logic changed).
+- **Not yet verified in Play mode/on-device**: neither the new QWERTY
+  layout's visual row spacing nor the new hint-button "need N more" labels
+  have been eyeballed by a human. Worth checking alongside M9's dust
+  particles rather than a separate check-in.
 - Next is M9: build the dust-particle ambient background as a prefab on
   `AppRoot`, so it renders behind every scene's UI with no duplication.

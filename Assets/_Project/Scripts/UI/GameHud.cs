@@ -60,10 +60,6 @@ namespace BadMovieClues.UI
             controller.Lost += () => SetStatus("YOU LOSE!");
             controller.Currency.OnBalanceChanged += _ => RefreshHintButtons();
 
-            pictureHintButtonLabel.text = $"Picture ({controller.Config.PictureHintCost})";
-            characterHintButtonLabel.text = $"Character ({controller.Config.CharacterHintCost})";
-            letterHintButtonLabel.text = $"Letter ({controller.Config.LetterHintCost})";
-
             pictureHintButton.onClick.AddListener(OnPictureHintClicked);
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
             letterHintButton.onClick.AddListener(OnLetterHintClicked);
@@ -206,34 +202,64 @@ namespace BadMovieClues.UI
             pictureHintButton.interactable = !over && !_pictureRevealed && balance >= config.PictureHintCost;
             characterHintButton.interactable = !over && !_characterRevealed && balance >= config.CharacterHintCost;
             letterHintButton.interactable = !over && balance >= config.LetterHintCost;
+
+            pictureHintButtonLabel.text = HintLabel("Picture", config.PictureHintCost, balance, _pictureRevealed);
+            characterHintButtonLabel.text = HintLabel("Character", config.CharacterHintCost, balance, _characterRevealed);
+            letterHintButtonLabel.text = HintLabel("Letter", config.LetterHintCost, balance, revealed: false);
         }
+
+        // Surfaces *why* a hint button is greyed out (already revealed vs. can't
+        // afford it) - a disabled Button fires no onClick, so this label is the
+        // only feedback the player gets; a plain grey button with no reason read
+        // as broken during real testing.
+        private static string HintLabel(string name, int cost, int balance, bool revealed)
+        {
+            if (revealed) return $"{name} ({cost})";
+            return balance >= cost ? $"{name} ({cost})" : $"{name} ({cost}) - need {cost - balance} more";
+        }
+
+        private static readonly string[] QwertyRows = { "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM" };
 
         private void BuildKeyboard()
         {
-            foreach (var letter in "ABCDEFGHIJKLMNOPQRSTUVWXYZ")
+            foreach (var row in QwertyRows)
             {
-                var buttonGo = new GameObject($"Key_{letter}", typeof(RectTransform), typeof(Image), typeof(Button));
-                buttonGo.transform.SetParent(keyboardRoot, false);
-                if (theme != null) theme.ApplyButton(buttonGo.GetComponent<Button>(), buttonGo.GetComponent<Image>());
+                var rowGo = new GameObject($"Row_{row}", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+                rowGo.transform.SetParent(keyboardRoot, false);
 
-                var labelGo = new GameObject("Label", typeof(RectTransform));
-                labelGo.transform.SetParent(buttonGo.transform, false);
-                var label = labelGo.AddComponent<TextMeshProUGUI>();
-                label.text = letter.ToString();
-                label.alignment = TextAlignmentOptions.Center;
-                label.color = Color.black;
-                label.fontSize = 28;
-                var labelRt = (RectTransform)labelGo.transform;
-                labelRt.anchorMin = Vector2.zero;
-                labelRt.anchorMax = Vector2.one;
-                labelRt.offsetMin = Vector2.zero;
-                labelRt.offsetMax = Vector2.zero;
+                var layout = rowGo.GetComponent<HorizontalLayoutGroup>();
+                layout.spacing = 6;
+                layout.childAlignment = TextAnchor.MiddleCenter;
+                layout.childControlWidth = true;
+                layout.childControlHeight = true;
+                layout.childForceExpandWidth = true;
+                layout.childForceExpandHeight = true;
 
-                var button = buttonGo.GetComponent<Button>();
-                var capturedLetter = letter;
-                button.onClick.AddListener(() => OnLetterPressed(capturedLetter, button));
+                foreach (var letter in row)
+                {
+                    var buttonGo = new GameObject($"Key_{letter}", typeof(RectTransform), typeof(Image), typeof(Button));
+                    buttonGo.transform.SetParent(rowGo.transform, false);
+                    if (theme != null) theme.ApplyButton(buttonGo.GetComponent<Button>(), buttonGo.GetComponent<Image>());
 
-                _letterButtons[letter] = button;
+                    var labelGo = new GameObject("Label", typeof(RectTransform));
+                    labelGo.transform.SetParent(buttonGo.transform, false);
+                    var label = labelGo.AddComponent<TextMeshProUGUI>();
+                    label.text = letter.ToString();
+                    label.alignment = TextAlignmentOptions.Center;
+                    label.color = Color.black;
+                    label.fontSize = 28;
+                    var labelRt = (RectTransform)labelGo.transform;
+                    labelRt.anchorMin = Vector2.zero;
+                    labelRt.anchorMax = Vector2.one;
+                    labelRt.offsetMin = Vector2.zero;
+                    labelRt.offsetMax = Vector2.zero;
+
+                    var button = buttonGo.GetComponent<Button>();
+                    var capturedLetter = letter;
+                    button.onClick.AddListener(() => OnLetterPressed(capturedLetter, button));
+
+                    _letterButtons[letter] = button;
+                }
             }
         }
 
