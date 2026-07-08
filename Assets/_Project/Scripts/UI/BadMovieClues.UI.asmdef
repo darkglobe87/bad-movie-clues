@@ -7,6 +7,7 @@
         "BadMovieClues.Puzzle",
         "BadMovieClues.Economy",
         "BadMovieClues.Services",
+        "BadMovieClues.Progression",
         "Unity.TextMeshPro",
         "UnityEngine.UI",
         "PrimeTween.Runtime"

@@ -1,12 +1,8 @@
 {
-    "name": "BadMovieClues.Core",
-    "rootNamespace": "BadMovieClues.Core",
+    "name": "BadMovieClues.Progression",
+    "rootNamespace": "BadMovieClues.Progression",
     "references": [
-        "BadMovieClues.Data",
-        "BadMovieClues.Puzzle",
-        "BadMovieClues.Economy",
-        "BadMovieClues.Services",
-        "BadMovieClues.Progression"
+        "BadMovieClues.Services"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -8,6 +8,7 @@
         "BadMovieClues.Economy",
         "BadMovieClues.Data",
         "BadMovieClues.Services",
+        "BadMovieClues.Progression",
         "Newtonsoft.Json"
     ],
     "includePlatforms": [

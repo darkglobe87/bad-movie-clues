@@ -1,5 +1,6 @@
 using System;
 using BadMovieClues.Economy;
+using BadMovieClues.Progression;
 using BadMovieClues.Services;
 using PrimeTween;
 using TMPro;
@@ -12,10 +13,8 @@ namespace BadMovieClues.UI
     /// Settings panel: Reduced Effects toggle, mute toggle, Reset Progress,
     /// Restore Purchases (stub - IPurchaseService doesn't exist until M12),
     /// Credits, version number. Built procedurally by MainMenuScreen, same
-    /// pattern as the rest of the UI. "Reset Progress" currently resets the
-    /// coin balance only - the only persisted state that exists pre-M11;
-    /// once ProgressService (M11) exists this should also clear solved/
-    /// unlocked level state.
+    /// pattern as the rest of the UI. "Reset Progress" resets both the coin
+    /// balance and solved/unlocked level state (ProgressService, M11).
     ///
     /// Sizing note: every row/button/toggle below gets an explicit
     /// LayoutElement with preferredWidth/Height instead of setting
@@ -34,6 +33,7 @@ namespace BadMovieClues.UI
         private AudioClip _clickSound;
         private IUserSettings _settings;
         private ICurrencyService _currency;
+        private IProgressService _progress;
         private GameConfig _config;
         private Action _onClose;
 
@@ -42,12 +42,13 @@ namespace BadMovieClues.UI
         private RectTransform _creditsPanel;
 
         public void Init(UITheme theme, AudioClip clickSound, IUserSettings settings,
-            ICurrencyService currency, GameConfig config, Action onClose)
+            ICurrencyService currency, IProgressService progress, GameConfig config, Action onClose)
         {
             _theme = theme;
             _clickSound = clickSound;
             _settings = settings;
             _currency = currency;
+            _progress = progress;
             _config = config;
             _onClose = onClose;
             Build();
@@ -212,7 +213,11 @@ namespace BadMovieClues.UI
             _creditsPanel.gameObject.SetActive(false);
         }
 
-        private void OnResetProgress() => _currency.Reset(_config.StartingBalance);
+        private void OnResetProgress()
+        {
+            _currency.Reset(_config.StartingBalance);
+            _progress.Reset();
+        }
 
         private void OnCreditsClicked() => _creditsPanel.gameObject.SetActive(true);
 

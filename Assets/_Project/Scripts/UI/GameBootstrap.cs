@@ -27,9 +27,9 @@ namespace BadMovieClues.UI
                 var app = AppRoot.Instance;
                 var hintService = new HintService(app.Currency, app.Config);
 
-                var controller = new GameController(app.ContentProvider, app.Currency, hintService, app.Config);
+                var controller = new GameController(app.ContentProvider, app.Currency, hintService, app.Config, app.Progress);
                 hud.Bind(controller, app.AudioService);
-                await controller.LoadLevelAsync(0);
+                await controller.LoadLevelAsync(app.SelectedLevelIndex);
             }
             catch (Exception e)
             {

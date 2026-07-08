@@ -893,7 +893,65 @@ near-full-height white/green rectangles overlapping the title text.
   planned milestone sequence for now" preference from the readability-fix
   conversation. `UITheme.HeadingFont`/`BodyFont` fields already exist
   (M6) and are still empty, waiting for this pass.
-- Next is M11: `IProgressService`/`ProgressService` (new
-  `BadMovieClues.Progression` asmdef) tracking solved levels + highest
-  unlocked index, and a `LevelSelectScreen`/`LevelCard` grid over all 36
-  catalog movies.
+
+## Setup status (M11)
+- **New `BadMovieClues.Progression` asmdef** (plain C#, references only
+  `BadMovieClues.Services`), matching the plan's explicit call-out. Added
+  as a reference to `Core` (needs it for `GameController`), `UI` (needs it
+  for `AppRoot`/`LevelSelectScreen`), and `Tests`.
+- **`IProgressService`/`ProgressService`**: tracks solved level ids
+  (`HashSet<string>`, persisted as a `string[]` DTO like
+  `SettingsService`'s pattern) and `HighestUnlockedIndex`. `MarkSolved`
+  unlocks `index + 1` and only fires `Changed`/persists if something
+  actually changed (`Add` returning false or the highest-unlocked value
+  not increasing correctly no-ops) - covered by a test that solves an
+  already-solved level twice and one that solves an out-of-order later
+  level first, confirming an earlier solve afterward doesn't lower
+  progress. `unlockAllForTesting` constructor flag per the plan's own
+  spec, for dev testing without grinding through 36 levels. `Reset()`
+  added so Settings' "Reset Progress" can clear this alongside the coin
+  balance now that both exist.
+- **`GameController` gained `CurrentIndex` and an `IProgressService`
+  constructor dependency** - `LoadLevelAsync` now records which catalog
+  index actually loaded (post-modulo), and the `PuzzleState.Won` handler
+  calls `_progressService.MarkSolved(level.Id, capturedIndex)` before
+  re-firing its own `Won` event. `GameBootstrap` passes `app.Progress`
+  through and now loads `app.SelectedLevelIndex` instead of a hardcoded
+  `0`.
+- **`AppRoot.SelectedLevelIndex`** (plain settable int, default 0): the
+  simplest way to pass "which level was picked" across a scene reload -
+  `LevelSelectScreen` sets it before navigating to `Gameplay`,
+  `GameBootstrap` reads it. Matches the established "AppRoot is the single
+  source of truth for cross-scene state" pattern rather than extending
+  `ScreenNavigator.LoadScene` with a payload parameter for a single use
+  case.
+- **`LevelSelectScreen`/`LevelCard`**: a `ScrollRect` + `GridLayoutGroup`
+  (3 columns, procedurally populated, same code-driven pattern as every
+  other screen) over all 36 catalog movies. **Locked cards deliberately
+  don't show the movie title** - just the level number and "Locked" - so
+  browsing the grid doesn't spoil puzzles you haven't unlocked yet; this
+  wasn't explicitly called out in the plan but follows directly from what
+  the game actually is (a guessing game - the title is the answer).
+  Solved cards get a checkmark suffix. `MainMenuScreen.Start()` became
+  `async void` (same justified exception to "no async void" as
+  `SplashScreen` - it's a top-level Unity lifecycle method with no caller
+  to await, same try/catch safety net) to await
+  `IContentProvider.LoadCatalogAsync()` once and hand the resolved
+  `LevelCatalog` to `LevelSelectScreen.Init()` synchronously, rather than
+  giving each panel-open its own async build step.
+- **PLAY now opens Level Select instead of jumping straight into
+  Gameplay** - direct consequence of Level Select existing; going straight
+  to a level no longer makes sense once there's a real chooser.
+  `MainMenuScreen`'s panel-closed callback was generalized from
+  `OnSettingsClosed` to `OnPanelClosed` since both Settings and Level
+  Select now return to the same button row the same way.
+- 51 EditMode tests passing (44 previous + 7 new `ProgressServiceTests`).
+- **Not yet verified in Play mode/on-device** - same category as every
+  previous milestone. Specifically: solve a level, confirm the next
+  unlocks in the grid and the checkmark appears, confirm locked cards
+  genuinely hide the title, confirm Reset Progress in Settings actually
+  re-locks everything, and confirm progress persists after fully closing
+  and reopening the app (not just navigating scenes within one session).
+- Next is M12: `IPurchaseService`/`StubPurchaseService` + a `StoreScreen`
+  with coin-pack buttons - the exact shell M15's real Play Billing plugs
+  into later without changing call sites.

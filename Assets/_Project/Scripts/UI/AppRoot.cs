@@ -1,5 +1,6 @@
 using BadMovieClues.Data;
 using BadMovieClues.Economy;
+using BadMovieClues.Progression;
 using BadMovieClues.Services;
 using UnityEngine;
 
@@ -25,6 +26,11 @@ namespace BadMovieClues.UI
         public IAudioService AudioService { get; private set; }
         public ParticleSystem DustParticles { get; private set; }
         public IUserSettings Settings { get; private set; }
+        public IProgressService Progress { get; private set; }
+
+        /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
+        /// read by GameBootstrap instead of always loading index 0.</summary>
+        public int SelectedLevelIndex { get; set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -51,6 +57,7 @@ namespace BadMovieClues.UI
             ContentProvider = new BundledContentProvider();
             AudioService = new SimpleAudioService();
             DustParticles = AmbientDustBackground.Build(transform);
+            Progress = new ProgressService(SaveService);
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.

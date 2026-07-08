@@ -9,12 +9,13 @@ namespace BadMovieClues.UI
 {
     /// <summary>
     /// Composition root + view for MainMenu.unity: title, Play/Store/Settings
-    /// buttons, and the SettingsScreen panel toggled in place of the button
-    /// row. Built entirely in code at runtime (RectTransform anchors, no
-    /// scene-authored children) - same procedural-UI pattern GameHud already
-    /// uses for the keyboard/blanks row, chosen for the same reason: no way
-    /// to drive the Editor GUI from this environment to hand-place UI, and
-    /// it keeps the scene file itself trivial to reason about.
+    /// buttons, and the LevelSelectScreen/SettingsScreen panels toggled in
+    /// place of the button row. Built entirely in code at runtime
+    /// (RectTransform anchors, no scene-authored children) - same
+    /// procedural-UI pattern GameHud already uses for the keyboard/blanks
+    /// row, chosen for the same reason: no way to drive the Editor GUI from
+    /// this environment to hand-place UI, and it keeps the scene file itself
+    /// trivial to reason about.
     /// </summary>
     public class MainMenuScreen : MonoBehaviour
     {
@@ -26,9 +27,16 @@ namespace BadMovieClues.UI
         private RectTransform _title;
         private RectTransform _buttonPanel;
         private SettingsScreen _settingsScreen;
+        private LevelSelectScreen _levelSelectScreen;
 
-        private void Start()
+        private async void Start()
         {
+            // async void is only acceptable for a top-level Unity lifecycle
+            // method with no caller to await it (SplashScreen does the
+            // same) - the try/catch is the same safety net every async
+            // lifecycle method in this project needs (M6 lesson): an
+            // exception thrown before the first await is otherwise silently
+            // swallowed with zero Console output.
             try
             {
                 var app = AppRoot.Instance;
@@ -37,12 +45,21 @@ namespace BadMovieClues.UI
                 BuildTitle();
                 BuildButtonPanel();
 
+                var catalog = await app.ContentProvider.LoadCatalogAsync();
+
                 var settingsGo = new GameObject("SettingsScreen", typeof(RectTransform));
                 settingsGo.transform.SetParent(canvasRoot, false);
                 StretchFull((RectTransform)settingsGo.transform);
                 _settingsScreen = settingsGo.AddComponent<SettingsScreen>();
-                _settingsScreen.Init(theme, clickSound, app.Settings, app.Currency, app.Config, OnSettingsClosed);
+                _settingsScreen.Init(theme, clickSound, app.Settings, app.Currency, app.Progress, app.Config, OnPanelClosed);
                 _settingsScreen.gameObject.SetActive(false);
+
+                var levelSelectGo = new GameObject("LevelSelectScreen", typeof(RectTransform));
+                levelSelectGo.transform.SetParent(canvasRoot, false);
+                StretchFull((RectTransform)levelSelectGo.transform);
+                _levelSelectScreen = levelSelectGo.AddComponent<LevelSelectScreen>();
+                _levelSelectScreen.Init(theme, clickSound, app.Progress, catalog, OnPanelClosed);
+                _levelSelectScreen.gameObject.SetActive(false);
             }
             catch (Exception e)
             {
@@ -108,7 +125,13 @@ namespace BadMovieClues.UI
             return button;
         }
 
-        private void OnPlayClicked() => _ = ScreenNavigator.Instance.LoadScene("Gameplay");
+        private void OnPlayClicked()
+        {
+            _title.gameObject.SetActive(false);
+            _buttonPanel.gameObject.SetActive(false);
+            _levelSelectScreen.gameObject.SetActive(true);
+            _levelSelectScreen.Refresh();
+        }
 
         private void OnSettingsClicked()
         {
@@ -118,9 +141,10 @@ namespace BadMovieClues.UI
             _settingsScreen.Refresh();
         }
 
-        private void OnSettingsClosed()
+        private void OnPanelClosed()
         {
             _settingsScreen.gameObject.SetActive(false);
+            _levelSelectScreen.gameObject.SetActive(false);
             _title.gameObject.SetActive(true);
             _buttonPanel.gameObject.SetActive(true);
         }
