@@ -16,6 +16,17 @@ namespace BadMovieClues.UI
     /// coin balance only - the only persisted state that exists pre-M11;
     /// once ProgressService (M11) exists this should also clear solved/
     /// unlocked level state.
+    ///
+    /// Sizing note: every row/button/toggle below gets an explicit
+    /// LayoutElement with preferredWidth/Height instead of setting
+    /// RectTransform.sizeDelta directly. The parent VerticalLayoutGroup has
+    /// childControlHeight=true, which means it computes and overwrites each
+    /// child's size from preferred/min values - sizeDelta gets silently
+    /// ignored/overwritten in that mode (same "ControlWidth/Height owns the
+    /// size, not sizeDelta" lesson as the M6 layout bug, just the version of
+    /// it that bites when ForceExpand is deliberately off for mixed-size
+    /// rows). Skipping LayoutElement here is what produced giant toggle
+    /// boxes and invisible buttons on first pass.
     /// </summary>
     public class SettingsScreen : MonoBehaviour
     {
@@ -45,7 +56,7 @@ namespace BadMovieClues.UI
         public void Refresh()
         {
             _reducedEffectsToggle.SetIsOnWithoutNotify(_settings.ReducedEffects);
-            _muteToggle.SetIsOnWithoutNotify(_settings.AudioEnabled);
+            _muteToggle.SetIsOnWithoutNotify(!_settings.AudioEnabled);
         }
 
         private void Build()
@@ -75,12 +86,20 @@ namespace BadMovieClues.UI
             BuildButton(panelRt, "Credits", OnCreditsClicked);
 
             var version = MainMenuScreen.UIText(panelRt, $"v{Application.version}", 18, FontStyles.Normal);
-            version.rectTransform.sizeDelta = new Vector2(0, 40);
+            AddFixedHeight(version.gameObject, 40);
             if (_theme != null) version.color = _theme.NeutralLight;
 
             BuildButton(panelRt, "< Back", OnBackClicked);
 
             BuildCreditsPanel();
+        }
+
+        private static LayoutElement AddFixedHeight(GameObject go, float height)
+        {
+            var le = go.AddComponent<LayoutElement>();
+            le.preferredHeight = height;
+            le.minHeight = height;
+            return le;
         }
 
         private Toggle BuildToggleRow(Transform parent, string label, bool initialValue, Action<bool> onChanged)
@@ -90,12 +109,19 @@ namespace BadMovieClues.UI
             var rowLayout = rowGo.GetComponent<HorizontalLayoutGroup>();
             rowLayout.spacing = 12;
             rowLayout.childAlignment = TextAnchor.MiddleLeft;
+            rowLayout.childControlWidth = true;
             rowLayout.childControlHeight = true;
-            ((RectTransform)rowGo.transform).sizeDelta = new Vector2(0, 60);
+            rowLayout.childForceExpandWidth = false;
+            rowLayout.childForceExpandHeight = true;
+            AddFixedHeight(rowGo, 56);
 
             var toggleGo = new GameObject("Toggle", typeof(RectTransform), typeof(Image), typeof(Toggle));
             toggleGo.transform.SetParent(rowGo.transform, false);
-            ((RectTransform)toggleGo.transform).sizeDelta = new Vector2(50, 50);
+            var toggleLe = toggleGo.AddComponent<LayoutElement>();
+            toggleLe.preferredWidth = 50;
+            toggleLe.preferredHeight = 50;
+            toggleLe.minWidth = 50;
+            toggleLe.minHeight = 50;
             var bgImage = toggleGo.GetComponent<Image>();
             bgImage.color = Color.white;
 
@@ -115,7 +141,11 @@ namespace BadMovieClues.UI
                 onChanged(v);
             });
 
-            var labelText = MainMenuScreen.UIText(rowGo.transform, label, 24, FontStyles.Normal);
+            var labelGo = new GameObject("Label", typeof(RectTransform));
+            labelGo.transform.SetParent(rowGo.transform, false);
+            labelGo.AddComponent<LayoutElement>().flexibleWidth = 1;
+            var labelText = MainMenuScreen.UIText(labelGo.transform, label, 24, FontStyles.Normal);
+            MainMenuScreen.StretchFull(labelText.rectTransform);
             labelText.alignment = TextAlignmentOptions.MidlineLeft;
             if (_theme != null) labelText.color = _theme.NeutralLight;
 
@@ -126,7 +156,7 @@ namespace BadMovieClues.UI
         {
             var buttonGo = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
             buttonGo.transform.SetParent(parent, false);
-            ((RectTransform)buttonGo.transform).sizeDelta = new Vector2(0, 56);
+            AddFixedHeight(buttonGo, 56);
             var button = buttonGo.GetComponent<Button>();
             button.interactable = interactable;
             if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());

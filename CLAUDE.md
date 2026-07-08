@@ -828,6 +828,71 @@ screenshot in that conversation for reference).
   number renders, and confirm Back returns to the button row correctly.
   None of this can be checked from this environment - worth one combined
   Play-mode/device pass covering all of it.
+
+## Bug found on-device: Settings screen toggles rendered as giant boxes
+Reported with a screenshot showing the Reduced Effects/Mute toggles as
+near-full-height white/green rectangles overlapping the title text.
+- **Root cause**: `SettingsScreen`'s toggle rows and buttons set
+  `RectTransform.sizeDelta` directly, but their parent `VerticalLayoutGroup`
+  has `childControlHeight = true` - in that mode the layout group computes
+  and *overwrites* each child's size from preferred/min values, silently
+  ignoring `sizeDelta` entirely. This is the same underlying rule as the M6
+  layout bug ("`ControlWidth`/`ControlHeight` owns the size, not
+  `sizeDelta`/`ForceExpand`"), just biting a second time in the specific
+  case of mixed fixed-and-flexible-height rows, which M6's fix never
+  exercised. Fixed by giving every sized element (toggle rows, the toggle
+  box itself, buttons, the version text) an explicit `LayoutElement` with
+  `preferredHeight`/`preferredWidth` (and matching `minHeight`/`minWidth`)
+  instead of touching `sizeDelta` at all once a `ControlHeight`-enabled
+  ancestor is involved. **Lesson to actually generalize this time**: any
+  RectTransform inside a `ControlWidth`/`ControlHeight` layout group needs
+  a `LayoutElement` if it isn't meant to just equally share space via
+  `ForceExpand` - `sizeDelta` on such a child is not just unreliable, it's
+  flatly ignored.
+- **Second bug, same screenshot**: the checkmark showed solid green (the
+  no-theme fallback color), meaning `UITheme` genuinely wasn't reaching
+  `SettingsScreen`. Confirmed by direct scene inspection -
+  `MainMenuScreen`'s `theme` field was `{fileID: 0}` (null) despite
+  `clickSound` and `canvasRoot` - set via the exact same
+  `SerializedObject`/`ApplyModifiedProperties()` call in the same batch
+  script - wiring correctly. Reproduced deliberately in a follow-up
+  diagnostic script: assigning `SerializedProperty.objectReferenceValue`
+  for this specific field silently did not persist even after
+  `ApplyModifiedProperties()` + re-reading it back in the same run: cause
+  not fully root-caused (a genuine, narrow Unity batch-mode quirk, not a
+  logic bug in this codebase), but reliably worked around by falling back
+  to direct reflection (`FieldInfo.SetValue` + `EditorUtility.SetDirty`)
+  when the `SerializedObject` path doesn't stick - verified by reading the
+  value back before saving, not just assuming success. Worth reaching for
+  this reflection fallback immediately if a `SerializedObject` field
+  assignment for a *ScriptableObject* reference (as opposed to the
+  `AudioClip`/`Component` references that worked fine) doesn't show up in
+  the saved scene again.
+- **Third bug, found while rewriting, not from the report**:
+  `SettingsScreen.Refresh()` set the mute toggle from `_settings
+  .AudioEnabled` directly, but the toggle displays "Mute" (the *inverse* of
+  `AudioEnabled`) - would have shown backwards every time Settings was
+  reopened after the first toggle. Fixed alongside the layout rewrite.
+- Also fixed: `MainMenuScreen` never hid the title text when Settings
+  opened, so it stayed visible behind/through the settings panel - now
+  toggled alongside the button panel.
+- 44 EditMode tests still passing; all three fixes were UI/wiring-only.
+- **Still not verified on-device** - needs a fresh build to confirm the
+  toggles now render as properly-sized boxes and the theme (button
+  sprites, gold checkmark) actually shows.
+- **User asked how to reach a more "highly themed" look** (referencing
+  Kenney-style asset-pack mockups with bordered buttons, panel headers,
+  icon sets, and a bold outlined/shadowed font) - answered inline, not yet
+  actioned: import more of the already-downloaded Kenney UI Pack (toggle/
+  checkbox sprites, icon set, panel-header variant - M7 only pulled 3 of
+  many available sprites) and source one free rounded display font (e.g.
+  Fredoka/Baloo/Bungee) as a TMP SDF asset with Outline+Underlay material
+  settings for the bold-with-shadow text look. Deliberately deferred as a
+  dedicated styling pass once M10-M13's screens all exist, rather than
+  restyling incrementally - matches the earlier "keep going with the
+  planned milestone sequence for now" preference from the readability-fix
+  conversation. `UITheme.HeadingFont`/`BodyFont` fields already exist
+  (M6) and are still empty, waiting for this pass.
 - Next is M11: `IProgressService`/`ProgressService` (new
   `BadMovieClues.Progression` asmdef) tracking solved levels + highest
   unlocked index, and a `LevelSelectScreen`/`LevelCard` grid over all 36

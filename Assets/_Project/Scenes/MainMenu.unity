@@ -265,7 +265,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 8c1e1970f84acca46b6b4a5a2b052a3a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: BadMovieClues.UI::BadMovieClues.UI.MainMenuScreen
-  theme: {fileID: 0}
+  theme: {fileID: 11400000, guid: fedf9e89d77e3504790d59fa163cd94e, type: 2}
   clickSound: {fileID: 8300000, guid: 8ce41ffaa4fa69c49b607ed077f5014d, type: 3}
   canvasRoot: {fileID: 94079281}
 --- !u!1 &1085169456

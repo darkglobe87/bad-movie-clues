@@ -23,6 +23,7 @@ namespace BadMovieClues.UI
         [SerializeField] private RectTransform canvasRoot;
 
         private IAudioService _audio;
+        private RectTransform _title;
         private RectTransform _buttonPanel;
         private SettingsScreen _settingsScreen;
 
@@ -52,10 +53,10 @@ namespace BadMovieClues.UI
         private void BuildTitle()
         {
             var title = UIText(canvasRoot, "Bad Movie Clues", 54, TMPro.FontStyles.Bold);
-            var rt = title.rectTransform;
-            rt.anchorMin = new Vector2(0.1f, 0.72f);
-            rt.anchorMax = new Vector2(0.9f, 0.85f);
-            rt.offsetMin = rt.offsetMax = Vector2.zero;
+            _title = title.rectTransform;
+            _title.anchorMin = new Vector2(0.1f, 0.72f);
+            _title.anchorMax = new Vector2(0.9f, 0.85f);
+            _title.offsetMin = _title.offsetMax = Vector2.zero;
             if (theme != null) title.color = theme.NeutralLight;
         }
 
@@ -111,6 +112,7 @@ namespace BadMovieClues.UI
 
         private void OnSettingsClicked()
         {
+            _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             _settingsScreen.gameObject.SetActive(true);
             _settingsScreen.Refresh();
@@ -119,6 +121,7 @@ namespace BadMovieClues.UI
         private void OnSettingsClosed()
         {
             _settingsScreen.gameObject.SetActive(false);
+            _title.gameObject.SetActive(true);
             _buttonPanel.gameObject.SetActive(true);
         }
 
