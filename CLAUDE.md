@@ -1025,6 +1025,53 @@ coins, not solved/unlocked levels.
   images actually load, the no-image gating reads correctly, and the
   confirmation popup appears before Reset Progress executes.
 
-- Next is M12: `IPurchaseService`/`StubPurchaseService` + a `StoreScreen`
-  with coin-pack buttons - the exact shell M15's real Play Billing plugs
-  into later without changing call sites.
+
+## Setup status (M12)
+- **`IPurchaseService`/`CoinPack`** (Services asmdef, per the plan) - a
+  purchase confirms success or failure only; it deliberately knows nothing
+  about coins/currency. Three fixed packs (500/1200/3000 coins) - a full
+  `StoreConfig` ScriptableObject felt like overkill for 3 hardcoded values
+  with no per-pack tuning need yet, unlike `GameConfig`'s hint costs which
+  actually get tuned.
+- **`StubPurchaseService` deliberately lives in `Economy`, not
+  `Services`**, despite the plan grouping it there with `SettingsService`/
+  `SimpleAudioService`. It needs `ICurrencyService` to grant coins on a
+  successful purchase, and `Economy` already references `Services` (not
+  the reverse) - putting the concrete class in `Services` would require
+  `Services -> Economy`, inverting/circularizing the established
+  dependency direction. Same class of deviation as `GameBootstrap` living
+  in `UI` instead of `Core` (M3): the interface stays where the plan put
+  it, the concrete implementation goes wherever the dependency graph
+  actually allows it to compile - Golden Rule 4 calls this out explicitly
+  as the correct response, not an asmdef reference to force through.
+- **First `[UnityTest]`-based tests in this project**:
+  `PurchaseAsync`/`RestorePurchasesAsync` return `Awaitable<bool>`, and
+  every previous service (`CurrencyService`, `SettingsService`,
+  `ProgressService`) was fully synchronous, so nothing needed to await
+  anything yet. `StubPurchaseServiceTests` uses `[UnityTest]` returning
+  `IEnumerator`, pumping `purchases.PurchaseAsync(id).GetAwaiter()` via
+  `while (!awaiter.IsCompleted) yield return null;` - same underlying
+  "don't block the thread that's supposed to drive completion" lesson as
+  the M8 batch-script `Thread.Sleep` deadlock, applied here through the
+  test framework's own coroutine pumping instead of a blocked spin-wait.
+- **`StoreScreen`**: coin-pack buttons, a live balance display, Restore
+  Purchases (stub), Back - built procedurally, same
+  `LayoutElement`-for-fixed-sizing approach as `SettingsScreen` applied
+  from the start this time (not re-discovered the hard way). `MainMenuScreen`'s
+  Store button is real now, not the M10 "(coming soon)" placeholder -
+  `OnPanelClosed` extended to also hide `StoreScreen`.
+- 55 EditMode tests passing (51 previous + 4 new
+  `StubPurchaseServiceTests`).
+- **Not yet verified in Play mode/on-device** - same category as every
+  previous milestone. Specifically: buy a pack, confirm the balance rises
+  by exactly the pack amount and the display updates live, confirm
+  Restore Purchases doesn't error with nothing to restore, confirm
+  purchased coins persist after returning to the button row and
+  navigating away.
+- Next is M13: `ConfettiBurst` + `LevelCompleteScreen` (win/lose
+  celebration, Next button, coins-earned count-up) - the last milestone in
+  the M6-M13 Visual/Art/UX pass before M14 (remote content) and M15
+  (Android + real SDKs). Also where the user-requested star-rating idea
+  (noted as an addendum on this milestone's prompt in the plan file,
+  flagged during M11's bugfix pass) should be scoped in detail rather than
+  left as a note.

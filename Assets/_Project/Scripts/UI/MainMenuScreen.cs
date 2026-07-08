@@ -28,6 +28,7 @@ namespace BadMovieClues.UI
         private RectTransform _buttonPanel;
         private SettingsScreen _settingsScreen;
         private LevelSelectScreen _levelSelectScreen;
+        private StoreScreen _storeScreen;
 
         private async void Start()
         {
@@ -60,6 +61,13 @@ namespace BadMovieClues.UI
                 _levelSelectScreen = levelSelectGo.AddComponent<LevelSelectScreen>();
                 _levelSelectScreen.Init(theme, clickSound, app.Progress, catalog, OnPanelClosed);
                 _levelSelectScreen.gameObject.SetActive(false);
+
+                var storeGo = new GameObject("StoreScreen", typeof(RectTransform));
+                storeGo.transform.SetParent(canvasRoot, false);
+                StretchFull((RectTransform)storeGo.transform);
+                _storeScreen = storeGo.AddComponent<StoreScreen>();
+                _storeScreen.Init(theme, clickSound, app.Purchases, app.Currency, OnPanelClosed);
+                _storeScreen.gameObject.SetActive(false);
             }
             catch (Exception e)
             {
@@ -95,7 +103,7 @@ namespace BadMovieClues.UI
             layout.childForceExpandHeight = true;
 
             BuildMenuButton(_buttonPanel, "PLAY", OnPlayClicked);
-            BuildMenuButton(_buttonPanel, "STORE (coming soon)", null, interactable: false);
+            BuildMenuButton(_buttonPanel, "STORE", OnStoreClicked);
             BuildMenuButton(_buttonPanel, "SETTINGS", OnSettingsClicked);
         }
 
@@ -141,10 +149,19 @@ namespace BadMovieClues.UI
             _settingsScreen.Refresh();
         }
 
+        private void OnStoreClicked()
+        {
+            _title.gameObject.SetActive(false);
+            _buttonPanel.gameObject.SetActive(false);
+            _storeScreen.gameObject.SetActive(true);
+            _storeScreen.Refresh();
+        }
+
         private void OnPanelClosed()
         {
             _settingsScreen.gameObject.SetActive(false);
             _levelSelectScreen.gameObject.SetActive(false);
+            _storeScreen.gameObject.SetActive(false);
             _title.gameObject.SetActive(true);
             _buttonPanel.gameObject.SetActive(true);
         }

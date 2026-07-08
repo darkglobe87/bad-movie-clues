@@ -27,6 +27,7 @@ namespace BadMovieClues.UI
         public ParticleSystem DustParticles { get; private set; }
         public IUserSettings Settings { get; private set; }
         public IProgressService Progress { get; private set; }
+        public IPurchaseService Purchases { get; private set; }
 
         /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
         /// read by GameBootstrap instead of always loading index 0.</summary>
@@ -58,6 +59,7 @@ namespace BadMovieClues.UI
             AudioService = new SimpleAudioService();
             DustParticles = AmbientDustBackground.Build(transform);
             Progress = new ProgressService(SaveService);
+            Purchases = new StubPurchaseService(Currency);
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.
