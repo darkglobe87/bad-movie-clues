@@ -731,3 +731,25 @@ screenshot in that conversation for reference).
   through M10 onward: lean into depth cues (drop shadows, layered
   parallax, juicier motion) within the existing 2D system rather than
   treating this as a separate milestone.
+- **Confirmed on-device the particle fix worked** ("the background looks
+  fantastic") - closes out the open verification gap from above.
+- **Follow-up readability bug, same root cause class as M9's particles**:
+  `descriptionText`, `coinBalanceText`, and `characterClueText` all had
+  `m_fontColor` hardcoded to black in the scene, dating from before M9's
+  real dark-purple background existed - black-on-`#2A1A3E` was "almost
+  unreadable" once the actual background shipped. Tile and keyboard-key
+  labels were correctly left black (they sit on `NeutralLight`-colored
+  tile/key sprites, where black *is* the right contrast choice) - only
+  the three text elements sitting directly on the bare background needed
+  a change. Fixed in code, not by hand-editing the scene YAML again:
+  `GameHud.Bind()` now sets all three to `theme.NeutralLight` (`#F5ECD9`,
+  the palette's "warm paper" color, already defined in `UITheme` for
+  exactly this purpose) inside the existing `if (theme != null)` guard,
+  matching the established pattern rather than adding a new one.
+- User feedback, deferred rather than acted on now: wants description-text
+  styling and UI elements that visually match the "badly drawn artwork"
+  clue-image aesthetic eventually - explicitly said to keep going with the
+  planned milestone sequence for now rather than open a dedicated styling
+  pass. Worth revisiting once more of the M10-M13 UI exists to style as a
+  batch.
+- 37 EditMode tests still passing; this was a color-only fix.

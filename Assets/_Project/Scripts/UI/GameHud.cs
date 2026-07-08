@@ -69,6 +69,16 @@ namespace BadMovieClues.UI
                 theme.ApplyButton(pictureHintButton, pictureHintButton.GetComponent<Image>());
                 theme.ApplyButton(characterHintButton, characterHintButton.GetComponent<Image>());
                 theme.ApplyButton(letterHintButton, letterHintButton.GetComponent<Image>());
+
+                // These three sit directly on the dark ambient background
+                // (no panel behind them) - black-on-#2A1A3E was nearly
+                // unreadable once the real background shipped in M9. Tile
+                // and keyboard-key labels stay black on purpose - those sit
+                // on NeutralLight-colored tile/key sprites, where black is
+                // the correct contrast choice.
+                descriptionText.color = theme.NeutralLight;
+                coinBalanceText.color = theme.NeutralLight;
+                characterClueText.color = theme.NeutralLight;
             }
 
             RefreshHintButtons();
