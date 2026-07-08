@@ -120,8 +120,14 @@ namespace BadMovieClues.UI
                 labelGo.transform.SetParent(tileGo.transform, false);
                 var tmp = labelGo.AddComponent<TextMeshProUGUI>();
                 tmp.alignment = TextAlignmentOptions.Center;
-                tmp.fontSize = 44;
-                tmp.color = Color.black;
+                tmp.fontSize = 46;
+                tmp.fontStyle = FontStyles.Bold;
+                tmp.color = theme != null ? theme.AccentMagenta : Color.black;
+                // A thin dark outline gives the revealed letters some pop
+                // against the tile instead of sitting flat - cheap TMP
+                // material tweak, no new art needed.
+                tmp.outlineWidth = 0.2f;
+                tmp.outlineColor = theme != null ? (Color32)theme.BackgroundTop : new Color32(0x2A, 0x1A, 0x3E, 0xFF);
                 tmp.text = char.IsLetter(title[i]) ? BlankChar.ToString() : title[i].ToString();
                 var labelRt = (RectTransform)labelGo.transform;
                 labelRt.anchorMin = Vector2.zero;

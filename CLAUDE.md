@@ -1111,6 +1111,43 @@ theory - the user pasted the real log) showed the true story:
 - 55 EditMode tests still passing after the removal (no logic ever
   touched this).
 
+## Real bug found: level select spoiled unsolved-but-unlocked movies
+User report, with a screenshot showing the readability/particle fixes
+working correctly: "the movie name is displayed on level select even if
+it's not complete." Confirmed directly in code, not guesswork -
+`LevelCard.Bind` (M11) only branched on `!unlocked` (show "Locked") vs.
+everything else (show the real title) - it never checked `solved`
+separately, so the instant a level unlocked, its title was fully visible
+on the grid before the player had attempted it at all. The class's own
+summary comment even claimed "Locked cards deliberately don't show the
+movie title... so browsing the grid doesn't spoil puzzles you haven't
+unlocked yet" - true for locked cards, but silent on the much more
+common case (every unlocked-but-unsolved card, i.e. almost the whole
+grid during normal play). Fixed: only `solved` cards show the title now;
+unlocked-but-unsolved cards show a plain "Play" prompt instead of the
+level number + nothing to guess.
+- **Also investigated, not conclusively a bug**: "letter and character
+  hints didn't work" - the accompanying screenshot shows a 5-coin balance
+  with Character/Letter hint labels correctly reading "need 25 more"/
+  "need 10 more", i.e. the UI is correctly explaining insufficient
+  balance, not silently failing. Given the established pattern (the M8
+  Character-hint incident turned out to be the identical situation), this
+  is most likely the same non-bug rather than a new one - flagging this
+  assessment rather than guessing at a fix with no reproducible failure
+  beyond low balance.
+- **Tile reveal styling improved** per explicit request ("the actual film
+  name being revealed doesn't look good"): blanks-row letters are now
+  bold, sized up slightly (44 -> 46), tinted `theme.AccentMagenta`
+  instead of plain black, with a thin dark outline
+  (`theme.BackgroundTop`) for contrast/pop against the tile - a cheap TMP
+  material tweak, no new art needed. The bigger reveal treatment (title
+  card, confetti, staggered cascade) is M13's actual job; this is just
+  making the baseline in-round look better in the meantime.
+- 55 EditMode tests still passing; all three changes were UI-only.
+- **Not yet verified on-device** - needs a fresh build to confirm locked/
+  unlocked-unsolved/solved cards all read correctly and the new tile
+  styling actually looks better, not just different.
+
 - Next is M13: `ConfettiBurst` + `LevelCompleteScreen` (win/lose
   celebration, Next button, coins-earned count-up) - the last milestone in
   the M6-M13 Visual/Art/UX pass before M14 (remote content) and M15

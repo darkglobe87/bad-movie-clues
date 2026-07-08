@@ -7,9 +7,12 @@ using UnityEngine.UI;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// One cell in the LevelSelectScreen grid. Locked cards deliberately
-    /// don't show the movie title (would spoil the puzzle before it's
-    /// reachable) - just the level number and a "Locked" label.
+    /// One cell in the LevelSelectScreen grid. Only *solved* cards show the
+    /// movie title - showing it as soon as a level is merely unlocked (the
+    /// original M11 behavior) spoils the puzzle before the player has even
+    /// attempted it, which is a much bigger miss than the locked-card case
+    /// this class originally guarded against. Unlocked-but-unsolved cards
+    /// show a plain "Play" prompt instead.
     /// </summary>
     public class LevelCard : MonoBehaviour
     {
@@ -30,7 +33,7 @@ namespace BadMovieClues.UI
                 ? $"{index + 1}\nLocked"
                 : solved
                     ? $"{index + 1}\n{level.MovieTitle}\n✓"
-                    : $"{index + 1}\n{level.MovieTitle}";
+                    : $"{index + 1}\nPlay";
             _button.interactable = unlocked;
             _onClick = onClick;
         }
