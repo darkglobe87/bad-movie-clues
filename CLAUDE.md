@@ -1068,6 +1068,49 @@ coins, not solved/unlocked levels.
   Restore Purchases doesn't error with nothing to restore, confirm
   purchased coins persist after returning to the button row and
   navigating away.
+
+## Build failure: AddressablesBuildPreprocessor broke the M12 cloud build
+The M12 push failed on Unity Build Automation. The actual build log (not a
+theory - the user pasted the real log) showed the true story:
+- `Addressable content successfully built (duration : 0:00:05.411)` logged
+  **before** `AddressablesBuildPreprocessor`'s own "Building Addressables
+  content..." line ever printed. Addressables was already building itself
+  automatically as a normal part of the player build pipeline, then my
+  preprocessor ran *again* immediately after and collided with the
+  just-completed build, failing with `SBP ErrorException` and aborting
+  the whole export ("ERROR: Player export failed. Reason:
+  [AddressablesBuildPreprocessor] Addressables content build failed").
+- **Root cause of the auto-build**: `Assets/AddressableAssetsData/
+  AddressableAssetSettings.asset` has `m_BuildAddressablesWithPlayerBuild:
+  0` (`PreferencesValue` - defers to the Editor's "Build Addressables
+  Content on Player Build" preference, a modern Addressables feature
+  that's **on by default**). The cloud builder's fresh Editor install has
+  this default, so Addressables content was already being built
+  correctly on every player build with zero extra configuration needed -
+  the M9-era "AddressableImageUtility" bug and this project's own M3
+  verification gaps never surfaced this because nobody had actually
+  looked at a real build log until now.
+- **This means the M12 diagnosis of "images never load because
+  Addressables content is never built" was wrong** - or at least, the fix
+  for it was unnecessary and actively harmful. Removed
+  `AddressablesBuildPreprocessor.cs` entirely rather than trying to make
+  it coexist with the already-working default (e.g. skip-if-already-built
+  logic would be fragile and duplicate what Addressables' own preference
+  already does correctly). **Honest state of the original "Matrix costs
+  coins, no image" report: still not confirmed fixed or explained** - the
+  Addressables auto-build evidently already worked, so whatever caused
+  that report needs a fresh look once a build actually succeeds again.
+  Don't assume it's resolved just because the preprocessor is gone.
+- Lesson for next time a build-pipeline gap is suspected: check the
+  actual project settings asset and a real build log before writing a
+  custom fix - `AddressableAssetSettings.asset` genuinely nothing hidden
+  or omitted in this repo's committed state, but its meaning (an enum
+  deferring to an Editor preference, not a hardcoded on/off) wasn't
+  obvious without either reading Addressables' own source or, as it
+  turned out, just watching a real build succeed.
+- 55 EditMode tests still passing after the removal (no logic ever
+  touched this).
+
 - Next is M13: `ConfettiBurst` + `LevelCompleteScreen` (win/lose
   celebration, Next button, coins-earned count-up) - the last milestone in
   the M6-M13 Visual/Art/UX pass before M14 (remote content) and M15
