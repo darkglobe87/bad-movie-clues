@@ -7,6 +7,7 @@ namespace BadMovieClues.Economy
         int Balance { get; }
         void Add(int amount);
         bool TrySpend(int amount);
+        void Reset(int startingBalance);
         event Action<int> OnBalanceChanged;
     }
 }

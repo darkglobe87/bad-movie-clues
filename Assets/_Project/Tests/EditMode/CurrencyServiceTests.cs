@@ -80,6 +80,33 @@ namespace BadMovieClues.Tests
         }
 
         [Test]
+        public void Reset_SetsBalance_AndFiresEvent()
+        {
+            var currency = new CurrencyService(new FakeSaveService(), startingBalance: 100);
+            currency.TrySpend(80);
+            int? eventBalance = null;
+            currency.OnBalanceChanged += b => eventBalance = b;
+
+            currency.Reset(100);
+
+            Assert.AreEqual(100, currency.Balance);
+            Assert.AreEqual(100, eventBalance);
+        }
+
+        [Test]
+        public void Reset_Persists_AcrossInstances()
+        {
+            var saveService = new FakeSaveService();
+            var first = new CurrencyService(saveService, startingBalance: 100);
+            first.TrySpend(90);
+            first.Reset(100);
+
+            var second = new CurrencyService(saveService, startingBalance: 999);
+
+            Assert.AreEqual(100, second.Balance);
+        }
+
+        [Test]
         public void Balance_PersistsAcrossInstances_ViaSharedSaveService()
         {
             var saveService = new FakeSaveService();

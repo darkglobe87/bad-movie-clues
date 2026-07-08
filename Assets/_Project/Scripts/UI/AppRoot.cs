@@ -24,6 +24,7 @@ namespace BadMovieClues.UI
         public IContentProvider ContentProvider { get; private set; }
         public IAudioService AudioService { get; private set; }
         public ParticleSystem DustParticles { get; private set; }
+        public IUserSettings Settings { get; private set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -50,6 +51,18 @@ namespace BadMovieClues.UI
             ContentProvider = new BundledContentProvider();
             AudioService = new SimpleAudioService();
             DustParticles = AmbientDustBackground.Build(transform);
+
+            // Applied last since it depends on AudioService/DustParticles
+            // already existing to push the loaded values onto them.
+            Settings = new SettingsService(SaveService);
+            ApplySettings();
+            Settings.Changed += ApplySettings;
+        }
+
+        private void ApplySettings()
+        {
+            AudioService.Enabled = Settings.AudioEnabled;
+            AmbientDustBackground.SetReducedEffects(DustParticles, Settings.ReducedEffects);
         }
     }
 }

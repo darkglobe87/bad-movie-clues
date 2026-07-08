@@ -753,3 +753,82 @@ screenshot in that conversation for reference).
   pass. Worth revisiting once more of the M10-M13 UI exists to style as a
   batch.
 - 37 EditMode tests still passing; this was a color-only fix.
+
+## Setup status (M10)
+- **`IUserSettings`/`SettingsService`** (Services asmdef): `ReducedEffects`
+  and `AudioEnabled` bools, save-backed via the existing `ISaveService`,
+  `Changed` event - directly mirrors `ICurrencyService`/`CurrencyService`'s
+  shape (same constructor pattern, same "only fire event on an actual
+  change" behavior). 5 new EditMode tests, same style as
+  `CurrencyServiceTests`.
+- **`ICurrencyService.Reset(int)` added** (small, deliberate scope
+  addition): "Reset Progress" in Settings needs *something* to reset, but
+  `IProgressService` doesn't exist until M11 - resetting the coin balance
+  is the only persisted state that exists right now. Belongs on
+  `ICurrencyService` since it's currency-domain logic, not something
+  `SettingsScreen` should reach past the interface for. 2 new EditMode
+  tests. Once M11 ships `ProgressService`, "Reset Progress" should also
+  clear solved/unlocked level state - noted in `SettingsScreen`'s summary
+  comment so it isn't forgotten.
+- **`AppRoot`** now also owns `Settings` (`IUserSettings`), constructed
+  last in `Initialize()` since applying it needs `AudioService` and
+  `DustParticles` to already exist - `ApplySettings()` pushes
+  `Settings.AudioEnabled`/`Settings.ReducedEffects` onto them once at
+  startup and again on every `Settings.Changed`.
+- **`MainMenuScreen`, `SettingsScreen`, `SplashScreen`** (UI asmdef): all
+  three build their entire UI procedurally at runtime (RectTransform
+  anchors, `AddComponent` calls), the same pattern `GameHud.BuildKeyboard`/
+  `BuildBlanksRow` already established - not a new decision, just applying
+  the existing one consistently, and still the only real option without
+  Editor GUI access to hand-place UI in this environment.
+  - `MainMenuScreen`: title + Play/Store/Settings button row. Store is
+    present but non-interactable with a "(coming soon)" label (M12's job) -
+    same self-explanatory-disabled-state pattern as the hint buttons'
+    "need N more" labels from the M8 bugfix, not a new pattern.
+  - `SettingsScreen`: Reduced Effects toggle, Mute toggle (inverted from
+    `AudioEnabled` - the toggle reads "Mute", the underlying bool is
+    "enabled"), Reset Progress, Restore Purchases (disabled/"coming soon",
+    same reasoning as Store - `IPurchaseService` is M12), Credits (opens a
+    small inline text panel with a Close button, not a separate screen),
+    version number (`Application.version`), Back. Toggles are hand-built
+    from `Image`+`Toggle`+child `Checkmark` `Image` rather than a prefab,
+    since nothing like a themed toggle sprite exists yet - functional but
+    plain; a real themed toggle asset is future polish, not blocking.
+  - `SplashScreen`: logo pop-in (`PrimeTween Ease.OutBack` from zero
+    scale), tagline fade-in, ~2s auto-advance to `MainMenu`, tap-anywhere-
+    to-skip. Requires an `Image` on its own `GameObject`
+    (`[RequireComponent(typeof(Image))]`) sized full-screen with alpha 0 -
+    `IPointerClickHandler` only fires where a raycastable `Graphic` is
+    actually hit, so a bare `MonoBehaviour` with no `Graphic` anywhere in
+    its hierarchy would never receive the tap at all. Same Awaitable
+    try/catch safety net as every other async lifecycle method in this
+    project (M6 lesson, keeps getting reapplied as new ones are added).
+- **`Splash.unity`** created fresh (Canvas, EventSystem, `SplashScreen`) and
+  **Build Settings reordered**: `Splash` (0) → `MainMenu` (1) → `Gameplay`
+  (2). `AppRoot`'s `RuntimeInitializeOnLoadMethod` construction (M8) was
+  specifically designed to not care which scene loads first, so this
+  insertion needed zero changes to `AppRoot` itself - confirms that M8
+  design bet paid off.
+- **`MainMenu.unity` rebuilt**, not hand-edited: a throwaway batch script
+  opened the scene, destroyed the old M8 placeholder children
+  (`TitleText`, `PlayButton`), added a `MainMenuScreen` component, and
+  wired its `theme`/`clickSound`/`canvasRoot` serialized fields via
+  `SerializedObject` (matching the established "use the real API, not
+  hand-crafted YAML" preference from earlier milestones' GUID lessons).
+- 44 EditMode tests passing (37 previous + 7 new: 5 `SettingsService`, 2
+  `CurrencyService.Reset`). Clean project-wide compile is also confirmed
+  correct for `MainMenuScreen`/`SettingsScreen`/`SplashScreen` themselves,
+  since a compile error anywhere would have failed the whole test run.
+- **Not yet verified in Play mode/on-device** - same category as every
+  previous milestone's UI. Specifically needs a human to: watch the splash
+  animate and auto-advance (or tap to skip), confirm Play/Settings buttons
+  work and Store shows correctly disabled, open Settings and toggle both
+  switches, hit Reset Progress and confirm the coin balance actually drops
+  back to `StartingBalance`, open/close Credits, confirm the version
+  number renders, and confirm Back returns to the button row correctly.
+  None of this can be checked from this environment - worth one combined
+  Play-mode/device pass covering all of it.
+- Next is M11: `IProgressService`/`ProgressService` (new
+  `BadMovieClues.Progression` asmdef) tracking solved levels + highest
+  unlocked index, and a `LevelSelectScreen`/`LevelCard` grid over all 36
+  catalog movies.

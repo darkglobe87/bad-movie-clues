@@ -38,6 +38,13 @@ namespace BadMovieClues.Economy
             return true;
         }
 
+        public void Reset(int startingBalance)
+        {
+            _balance = startingBalance;
+            Persist();
+            OnBalanceChanged?.Invoke(_balance);
+        }
+
         private void Persist() => _saveService.Save(SaveKey, _balance);
     }
 }
