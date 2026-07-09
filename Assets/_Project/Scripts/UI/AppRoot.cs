@@ -53,6 +53,10 @@ namespace BadMovieClues.UI
         {
             Instance = this;
 
+            // Mobile CPU/GPU Optimizations
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+
             Config = Resources.Load<GameConfig>("GameConfig");
             SaveService = new LocalJsonSaveService();
             Currency = new CurrencyService(SaveService, Config.StartingBalance);
