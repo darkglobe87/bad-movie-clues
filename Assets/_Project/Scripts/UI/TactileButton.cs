@@ -6,19 +6,18 @@ using PrimeTween;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Animates the button graphic downwards on PointerDown and restores it on PointerUp,
-    /// simulating a tactile, mechanical 3D button press.
+    /// Animates the button graphic by scaling it down on PointerDown and restoring it on PointerUp,
+    /// simulating a tactile 3D button press without fighting LayoutGroups.
     /// </summary>
     [RequireComponent(typeof(Button))]
     public class TactileButton : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
     {
-        [SerializeField] private float pressDepth = 4f;
+        [SerializeField] private float squishScale = 0.92f;
         [SerializeField] private float pressDuration = 0.05f;
         [SerializeField] private float releaseDuration = 0.1f;
 
         private Button _button;
         private RectTransform _target;
-        private Vector3 _originalPos;
         private bool _isPressed;
 
         private void Awake()
@@ -38,11 +37,6 @@ namespace BadMovieClues.UI
             {
                 _target = transform as RectTransform;
             }
-
-            if (_target != null)
-            {
-                _originalPos = _target.anchoredPosition3D;
-            }
         }
 
         public void OnPointerDown(PointerEventData eventData)
@@ -51,8 +45,8 @@ namespace BadMovieClues.UI
             _isPressed = true;
             Tween.StopAll(this);
             
-            // Shift target face down
-            Tween.UIAnchoredPosition3D(_target, endValue: _originalPos + new Vector3(0, -pressDepth, 0), duration: pressDuration, ease: Ease.OutQuad);
+            // Squish down
+            Tween.Scale(_target, endValue: squishScale, duration: pressDuration, ease: Ease.OutQuad);
         }
 
         public void OnPointerUp(PointerEventData eventData)
@@ -61,15 +55,15 @@ namespace BadMovieClues.UI
             _isPressed = false;
             Tween.StopAll(this);
             
-            // Bounce target face back up
-            Tween.UIAnchoredPosition3D(_target, endValue: _originalPos, duration: releaseDuration, ease: Ease.OutBack);
+            // Bounce back
+            Tween.Scale(_target, endValue: 1f, duration: releaseDuration, ease: Ease.OutBack);
         }
 
         private void OnDisable()
         {
             if (_target != null)
             {
-                _target.anchoredPosition3D = _originalPos;
+                _target.localScale = Vector3.one;
             }
             _isPressed = false;
         }

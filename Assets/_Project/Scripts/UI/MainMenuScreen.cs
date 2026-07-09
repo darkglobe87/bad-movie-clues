@@ -201,7 +201,6 @@ namespace BadMovieClues.UI
                 {
                     AppRoot.Instance.Haptics?.VibrateClick();
                     _audio?.PlayOneShot(clickSound);
-                    Tween.Scale(buttonGo.transform, endValue: 0.92f, duration: 0.08f, cycles: 2, cycleMode: CycleMode.Yoyo);
                     onClick();
                 });
             }

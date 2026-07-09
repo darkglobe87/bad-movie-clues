@@ -145,14 +145,13 @@ namespace BadMovieClues.UI
             }
         }
 
-        /// <summary>Applies the tile sprite/color to a keyboard key or blanks-row tile background.</summary>
         public void ApplyTile(Image image, bool isKeyboardKey)
         {
             var sprite = isKeyboardKey ? KeySprite : TileSprite;
             sprite = sprite != null ? sprite : ProceduralIcons.RoundedRect;
             image.sprite = sprite;
             image.type = Image.Type.Sliced;
-            image.color = NeutralLight;
+            image.color = isKeyboardKey ? NeutralLight : CardBackground;
         }
 
         /// <summary>Applies the panel sprite to an Image for backgrounds/cards.

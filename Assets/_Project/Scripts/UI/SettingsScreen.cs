@@ -222,7 +222,6 @@ namespace BadMovieClues.UI
                 button.onClick.AddListener(() =>
                 {
                     PlayClick();
-                    Tween.Scale(buttonGo.transform, endValue: 0.92f, duration: 0.08f, cycles: 2, cycleMode: CycleMode.Yoyo);
                     onClick();
                 });
             }
@@ -241,7 +240,7 @@ namespace BadMovieClues.UI
             if (_theme != null) _theme.ApplyPanel(img);
             else img.color = new Color32(0x23, 0x14, 0x34, 0xFF);
 
-            var text = MainMenuScreen.UIText(_creditsPanel, "Bad Movie Clues\n\nBad descriptions & bad art by the owner.\nBuilt with Unity, PrimeTween, and the Kenney UI Pack.",
+            var text = MainMenuScreen.UIText(_creditsPanel, "Bad Movie Clues\n\nBad descriptions & bad art by the owner.\nBuilt with Unity, PrimeTween, Google Fonts, and the Kenney UI Pack.",
                 18, FontStyles.Normal);
             if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             var textRt = text.rectTransform;

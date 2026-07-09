@@ -128,6 +128,18 @@ namespace BadMovieClues.UI
 
             RefreshHintButtons();
             BuildKeyboard();
+
+            if (theme != null)
+            {
+                var allButtons = canvasRoot.GetComponentsInChildren<Button>(true);
+                foreach (var b in allButtons)
+                {
+                    if (b.name.Contains("Menu") || b.name.Contains("Back"))
+                    {
+                        theme.ApplyButton(b, b.GetComponent<Image>());
+                    }
+                }
+            }
         }
 
         private void OnLevelLoaded(LevelData level, Sprite sprite)
@@ -466,7 +478,6 @@ namespace BadMovieClues.UI
         {
             AppRoot.Instance.Haptics?.VibrateClick();
             _audioService?.PlayOneShot(clickSound);
-            Tween.Scale(target, endValue: SquishScale, duration: SquishDuration, cycles: 2, cycleMode: CycleMode.Yoyo);
         }
 
         private static void PlayPop(Transform target, float delay = 0f)
