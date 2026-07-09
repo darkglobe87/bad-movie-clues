@@ -44,8 +44,8 @@ namespace BadMovieClues.UI
                 spotImg.sprite = ProceduralIcons.RoundedRect;
                 spotImg.color = new Color32(0xFF, 0x4E, 0x8B, 0x1A); // Soft AccentMagenta glow
                 
-                Tween.Scale(spotlightGo.transform, endValue: 1.25f, duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
-                Tween.Color(spotImg, endValue: new Color32(0xFF, 0x4E, 0x8B, 0x05), duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
+                _ = Tween.Scale(spotlightGo.transform, endValue: 1.25f, duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
+                _ = Tween.Color(spotImg, endValue: new Color32(0xFF, 0x4E, 0x8B, 0x05), duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
 
                 // Add chasing marquee border lights around the splash screen edges (removed per user request)
 
@@ -68,6 +68,7 @@ namespace BadMovieClues.UI
                 string titleText = "Bad Movie Clues";
                 var letterGos = new GameObject[titleText.Length];
 
+                Debug.Log("[SplashScreen] Building staggered letter objects...");
                 for (int i = 0; i < titleText.Length; i++)
                 {
                     char c = titleText[i];
@@ -100,12 +101,14 @@ namespace BadMovieClues.UI
                 tagline.transform.localPosition = new Vector3(0f, -40f, 0f);
 
                 // Play cinematic letter stagger-in sequence
+                Debug.Log("[SplashScreen] Starting letter stagger-in scale tweens...");
                 for (int i = 0; i < titleText.Length; i++)
                 {
                     _ = Tween.Scale(letterGos[i].transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: i * 0.04f);
                 }
 
                 // Wait for letters to fully stagger in
+                Debug.Log("[SplashScreen] Waiting 1.0s for letters stagger-in...");
                 var elapsedIntro = 0f;
                 while (elapsedIntro < 1.0f)
                 {
@@ -114,6 +117,7 @@ namespace BadMovieClues.UI
                 }
 
                 // Confetti celebration burst
+                Debug.Log("[SplashScreen] Playing ConfettiBurst...");
                 ConfettiBurst.Play(canvasRoot, 25);
 
                 // Slide tagline up & fade in
@@ -121,12 +125,14 @@ namespace BadMovieClues.UI
                 await Tween.Alpha(tagCanvasGroup, endValue: 1f, duration: 0.6f);
 
                 // Main delay before auto-advance
+                Debug.Log($"[SplashScreen] Waiting {AutoAdvanceDelay}s before auto-advancing...");
                 var elapsed = 0f;
                 while (elapsed < AutoAdvanceDelay)
                 {
                     await Awaitable.NextFrameAsync();
                     elapsed += Time.deltaTime;
                 }
+                Debug.Log("[SplashScreen] Delay completed. Advancing...");
                 Advance();
             }
             catch (Exception e)
@@ -135,12 +141,17 @@ namespace BadMovieClues.UI
             }
         }
 
-        public void OnPointerClick(PointerEventData eventData) => Advance();
+        public void OnPointerClick(PointerEventData eventData)
+        {
+            Debug.Log("[SplashScreen] Tap skip detected. Advancing...");
+            Advance();
+        }
 
         private void Advance()
         {
             if (_advancing) return;
             _advancing = true;
+            Debug.Log("[SplashScreen] Calling ScreenNavigator.LoadScene('MainMenu')");
             _ = ScreenNavigator.Instance.LoadScene("MainMenu");
         }
     }

@@ -36,21 +36,43 @@ namespace BadMovieClues.UI
 
         private async void Start()
         {
+            Debug.Log("[MainMenuScreen] Start() beginning execution...");
             try
             {
                 var app = AppRoot.Instance;
+                if (app == null)
+                {
+                    Debug.LogError("[MainMenuScreen] AppRoot.Instance is null!");
+                    return;
+                }
                 _audio = app.AudioService;
 
+                Debug.Log("[MainMenuScreen] Building UI elements...");
                 BuildTitle();
+                Debug.Log("[MainMenuScreen] Title built.");
                 BuildButtonPanel();
+                Debug.Log("[MainMenuScreen] Button panel built.");
                 BuildCoinDisplay();
+                Debug.Log("[MainMenuScreen] Coin display built.");
                 BuildStreakBadge();
+                Debug.Log("[MainMenuScreen] Streak badge built.");
                 BuildVersionText();
+                Debug.Log("[MainMenuScreen] Version text built.");
 
-                app.Currency.OnBalanceChanged += OnBalanceChanged;
+                if (app.Currency != null)
+                {
+                    app.Currency.OnBalanceChanged += OnBalanceChanged;
+                }
+                else
+                {
+                    Debug.LogWarning("[MainMenuScreen] app.Currency is null!");
+                }
 
+                Debug.Log("[MainMenuScreen] Loading level catalog asynchronously...");
                 var catalog = await app.ContentProvider.LoadCatalogAsync();
+                Debug.Log($"[MainMenuScreen] Catalog loaded successfully. Level count: {catalog?.Levels?.Count}");
 
+                Debug.Log("[MainMenuScreen] Initializing SettingsScreen...");
                 var settingsGo = new GameObject("SettingsScreen", typeof(RectTransform));
                 settingsGo.transform.SetParent(canvasRoot, false);
                 StretchFull((RectTransform)settingsGo.transform);
@@ -58,6 +80,7 @@ namespace BadMovieClues.UI
                 _settingsScreen.Init(theme, clickSound, app.Settings, app.Currency, app.Progress, app.Config, OnPanelClosed);
                 _settingsScreen.gameObject.SetActive(false);
 
+                Debug.Log("[MainMenuScreen] Initializing LevelSelectScreen...");
                 var levelSelectGo = new GameObject("LevelSelectScreen", typeof(RectTransform));
                 levelSelectGo.transform.SetParent(canvasRoot, false);
                 StretchFull((RectTransform)levelSelectGo.transform);
@@ -65,6 +88,7 @@ namespace BadMovieClues.UI
                 _levelSelectScreen.Init(theme, clickSound, app.Progress, catalog, OnPanelClosed);
                 _levelSelectScreen.gameObject.SetActive(false);
 
+                Debug.Log("[MainMenuScreen] Initializing StoreScreen...");
                 var storeGo = new GameObject("StoreScreen", typeof(RectTransform));
                 storeGo.transform.SetParent(canvasRoot, false);
                 StretchFull((RectTransform)storeGo.transform);
@@ -75,12 +99,14 @@ namespace BadMovieClues.UI
                 _catalog = catalog;
 
                 // Show daily reward modal if unclaimed
-                if (!app.Retention.HasClaimedToday)
+                if (app.Retention != null && !app.Retention.HasClaimedToday)
                 {
+                    Debug.Log("[MainMenuScreen] Showing daily reward modal...");
                     ShowDailyRewardModal(app);
                 }
 
                 RefreshDailyChallengeButton();
+                Debug.Log("[MainMenuScreen] Start() completed successfully!");
             }
             catch (Exception e)
             {

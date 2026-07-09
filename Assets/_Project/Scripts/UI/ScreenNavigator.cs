@@ -106,6 +106,7 @@ namespace BadMovieClues.UI
 
         public async Awaitable LoadScene(string sceneName, TransitionType transition)
         {
+            Debug.Log($"[ScreenNavigator] LoadScene('{sceneName}') called with transition: {transition}");
             try
             {
                 var rt = (RectTransform)_fadeGroup.transform;
@@ -114,37 +115,48 @@ namespace BadMovieClues.UI
                 if (screenWidth <= 0) screenWidth = Screen.width; // Fallback
                 var halfWidth = screenWidth * 0.5f;
 
+                Debug.Log($"[ScreenNavigator] Screen width: {screenWidth}, Half width: {halfWidth}");
                 _fadeGroup.blocksRaycasts = true;
                 _fadeGroup.alpha = 1f;
 
                 // Close the curtains: slide from offscreen sides to the center
+                Debug.Log("[ScreenNavigator] Setting curtains to offscreen position...");
                 _leftCurtain.anchoredPosition = new Vector2(-halfWidth, 0f);
                 _rightCurtain.anchoredPosition = new Vector2(halfWidth, 0f);
 
+                Debug.Log("[ScreenNavigator] Creating close curtains tween...");
                 var closeSequence = Sequence.Create()
                     .Group(Tween.UIAnchoredPosition(_leftCurtain, endValue: Vector2.zero, duration: 0.35f, ease: Ease.OutQuad))
                     .Group(Tween.UIAnchoredPosition(_rightCurtain, endValue: Vector2.zero, duration: 0.35f, ease: Ease.OutQuad));
 
+                Debug.Log("[ScreenNavigator] Awaiting close curtains tween sequence...");
                 await closeSequence;
+                Debug.Log("[ScreenNavigator] Close curtains tween finished!");
 
+                Debug.Log($"[ScreenNavigator] Loading scene '{sceneName}' asynchronously...");
                 var operation = SceneManager.LoadSceneAsync(sceneName);
                 while (operation != null && !operation.isDone)
                 {
                     await Awaitable.NextFrameAsync();
                 }
+                Debug.Log($"[ScreenNavigator] Scene '{sceneName}' load operation completed!");
 
                 // Wait one frame to avoid visual pop during scene initialization
                 await Awaitable.NextFrameAsync();
 
                 // Open the curtains: slide back offscreen
+                Debug.Log("[ScreenNavigator] Creating open curtains tween...");
                 var openSequence = Sequence.Create()
                     .Group(Tween.UIAnchoredPosition(_leftCurtain, endValue: new Vector2(-halfWidth, 0f), duration: 0.35f, ease: Ease.InQuad))
                     .Group(Tween.UIAnchoredPosition(_rightCurtain, endValue: new Vector2(halfWidth, 0f), duration: 0.35f, ease: Ease.InQuad));
 
+                Debug.Log("[ScreenNavigator] Awaiting open curtains tween sequence...");
                 await openSequence;
+                Debug.Log("[ScreenNavigator] Open curtains tween finished!");
 
                 _fadeGroup.blocksRaycasts = false;
                 _fadeGroup.alpha = 0f;
+                Debug.Log($"[ScreenNavigator] LoadScene('{sceneName}') completed successfully!");
             }
             catch (Exception e)
             {
