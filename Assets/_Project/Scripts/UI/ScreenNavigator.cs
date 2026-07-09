@@ -111,6 +111,7 @@ namespace BadMovieClues.UI
                 }
 
                 _fadeGroup.blocksRaycasts = false;
+                _fadeGroup.alpha = 0f;
                 rt.anchoredPosition = Vector2.zero;
             }
             catch (Exception e)
