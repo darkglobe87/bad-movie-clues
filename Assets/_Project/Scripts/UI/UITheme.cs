@@ -107,10 +107,12 @@ namespace BadMovieClues.UI
             Color baseColor = isKey ? KeyboardKeyColor : ButtonColor;
             Color textColor = isKey ? KeyboardKeyTextColor : ButtonTextColor;
 
-            var sprite = ButtonNormalSprite != null ? ButtonNormalSprite : ProceduralIcons.RoundedRect;
-            image.sprite = sprite;
+            // Force using procedural 3D rounded button texture for optimal rounded styling
+            image.sprite = ProceduralIcons.RoundedRect;
             image.type = Image.Type.Sliced;
             image.color = Color.white;
+
+            button.targetGraphic = image; // Ensure Unity UI color transitions are applied!
 
             var colors = button.colors;
             colors.normalColor = baseColor;
@@ -129,6 +131,9 @@ namespace BadMovieClues.UI
             if (text != null)
             {
                 text.color = textColor;
+                text.fontStyle = FontStyles.Bold;
+                text.outlineColor = ShadowColor;
+                text.outlineWidth = 0.15f;
                 if (BodyFont != null) text.font = BodyFont;
             }
         }

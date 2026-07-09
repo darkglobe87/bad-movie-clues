@@ -221,9 +221,8 @@ namespace BadMovieClues.UI
             var buttonGo = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
             buttonGo.transform.SetParent(_buttonRow, false);
             var button = buttonGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var text = MainMenuScreen.UIText(buttonGo.transform, label, 24, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
 

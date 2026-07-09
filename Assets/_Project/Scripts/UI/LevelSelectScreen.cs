@@ -176,8 +176,8 @@ namespace BadMovieClues.UI
             backRt.anchoredPosition = new Vector2(0f, 28f);
             backRt.sizeDelta = new Vector2(0f, 56f);
             var button = backGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(button, backGo.GetComponent<Image>());
             var text = MainMenuScreen.UIText(backGo.transform, "< Back", 22, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, backGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
             button.onClick.AddListener(() =>

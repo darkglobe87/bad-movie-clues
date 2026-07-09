@@ -333,12 +333,12 @@ namespace BadMovieClues.UI
             RefreshHintButtons();
         }
 
-        private void TriggerCoinBurst(Vector2 fromPos)
+        private void TriggerCoinBurst(Vector2 targetPos)
         {
             if (canvasRoot != null && coinBalanceText != null)
             {
-                var toPos = GetCanvasLocalPos((RectTransform)coinBalanceText.transform);
-                ConfettiBurst.PlayCoinBurst(canvasRoot, fromPos, toPos, 12);
+                var fromPos = GetCanvasLocalPos((RectTransform)coinBalanceText.transform);
+                ConfettiBurst.PlayCoinBurst(canvasRoot, fromPos, targetPos, 12);
             }
         }
 
@@ -394,22 +394,27 @@ namespace BadMovieClues.UI
                 {
                     var buttonGo = new GameObject($"Key_{letter}", typeof(RectTransform), typeof(Image), typeof(Button));
                     buttonGo.transform.SetParent(rowGo.transform, false);
-                    if (theme != null) theme.ApplyButton(buttonGo.GetComponent<Button>(), buttonGo.GetComponent<Image>());
-
                     var labelGo = new GameObject("Label", typeof(RectTransform));
                     labelGo.transform.SetParent(buttonGo.transform, false);
                     var label = labelGo.AddComponent<TextMeshProUGUI>();
                     label.text = letter.ToString();
                     label.alignment = TextAlignmentOptions.Center;
-                    label.color = Color.black;
                     label.fontSize = 28;
-                    if (theme != null && theme.BodyFont != null) label.font = theme.BodyFont;
                     
                     var labelRt = (RectTransform)labelGo.transform;
                     labelRt.anchorMin = Vector2.zero;
                     labelRt.anchorMax = Vector2.one;
                     labelRt.offsetMin = Vector2.zero;
                     labelRt.offsetMax = Vector2.zero;
+
+                    if (theme != null)
+                    {
+                        theme.ApplyButton(buttonGo.GetComponent<Button>(), buttonGo.GetComponent<Image>());
+                    }
+                    else
+                    {
+                        label.color = Color.black;
+                    }
 
                     var button = buttonGo.GetComponent<Button>();
                     var capturedLetter = letter;

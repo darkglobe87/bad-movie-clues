@@ -212,9 +212,8 @@ namespace BadMovieClues.UI
             AddFixedHeight(buttonGo, 48);
             var button = buttonGo.GetComponent<Button>();
             button.interactable = interactable;
-            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var text = MainMenuScreen.UIText(buttonGo.transform, label, 20, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
 
@@ -258,8 +257,8 @@ namespace BadMovieClues.UI
             closeRt.anchorMax = new Vector2(0.65f, 0.2f);
             closeRt.offsetMin = closeRt.offsetMax = Vector2.zero;
             var closeButton = closeGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(closeButton, closeGo.GetComponent<Image>());
             var closeText = MainMenuScreen.UIText(closeGo.transform, "Close", 18, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(closeButton, closeGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) closeText.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(closeText.rectTransform);
             closeButton.onClick.AddListener(() =>

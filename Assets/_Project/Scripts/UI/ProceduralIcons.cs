@@ -132,12 +132,13 @@ namespace BadMovieClues.UI
             const int w = 64;
             const int h = 36;
             const float radius = 8f;
+            const float shadowOffset = 3f;
+            
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Bilinear;
             tex.wrapMode = TextureWrapMode.Clamp;
 
             var clear = new Color(0, 0, 0, 0);
-            var white = Color.white;
             var pixels = new Color[w * h];
             for (int i = 0; i < pixels.Length; i++) pixels[i] = clear;
 
@@ -145,16 +146,50 @@ namespace BadMovieClues.UI
             {
                 for (int x = 0; x < w; x++)
                 {
-                    float dist = RoundedRectSDF(x + 0.5f, y + 0.5f, w, h, radius);
-                    if (dist < 0f)
+                    // Body is shifted up to leave room for the bottom shadow
+                    float bodyDist = RoundedRectSDF(x + 0.5f, y + 0.5f - shadowOffset, w, h - shadowOffset, radius);
+                    // Shadow is shifted slightly less
+                    float shadowDist = RoundedRectSDF(x + 0.5f, y + 0.5f - 1f, w, h - shadowOffset, radius);
+
+                    if (bodyDist < 0f)
                     {
-                        // Inside: fully opaque
-                        pixels[y * w + x] = white;
+                        // Inside button body
+                        float t = (y - shadowOffset) / (h - shadowOffset);
+                        // Vertical gradient: top is pure white, bottom is light gray
+                        Color col = Color.Lerp(new Color(0.8f, 0.8f, 0.8f, 1f), Color.white, t);
+
+                        // Draw a dark inner border for crispness (1.5px wide)
+                        if (bodyDist > -1.5f)
+                        {
+                            float borderAlpha = Mathf.Clamp01((1.5f + bodyDist) / 1.5f);
+                            col = Color.Lerp(col, new Color(0.1f, 0.1f, 0.1f, 0.35f), borderAlpha);
+                        }
+                        
+                        pixels[y * w + x] = col;
                     }
-                    else if (dist < 1.2f)
+                    else if (bodyDist < 1.2f)
                     {
-                        // Anti-aliased edge
-                        pixels[y * w + x] = new Color(1, 1, 1, Mathf.Clamp01(1.2f - dist));
+                        // Anti-aliased body edge
+                        float alpha = Mathf.Clamp01(1.2f - bodyDist);
+                        Color col = new Color(0.8f, 0.8f, 0.8f, alpha);
+                        
+                        // Blend with border
+                        if (bodyDist > -0.5f)
+                        {
+                            col = Color.Lerp(col, new Color(0.1f, 0.1f, 0.1f, 0.35f * alpha), (bodyDist + 0.5f) / 1f);
+                        }
+                        pixels[y * w + x] = col;
+                    }
+                    else if (shadowDist < 0f)
+                    {
+                        // Inside drop shadow
+                        pixels[y * w + x] = new Color(0f, 0f, 0f, 0.45f);
+                    }
+                    else if (shadowDist < 1.5f)
+                    {
+                        // Anti-aliased shadow edge
+                        float alpha = Mathf.Clamp01(1.5f - shadowDist);
+                        pixels[y * w + x] = new Color(0f, 0f, 0f, 0.45f * alpha);
                     }
                 }
             }
@@ -162,8 +197,8 @@ namespace BadMovieClues.UI
             tex.SetPixels(pixels);
             tex.Apply();
 
-            // 9-slice borders for proper scaling
-            var border = new Vector4(radius + 2, radius + 2, radius + 2, radius + 2);
+            // 9-slice borders: left=10, bottom=13 (radius+shadow), right=10, top=10
+            var border = new Vector4(radius + 2, radius + 5, radius + 2, radius + 2);
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f, 0,
                 SpriteMeshType.FullRect, border);
         }

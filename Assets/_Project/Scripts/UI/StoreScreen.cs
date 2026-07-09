@@ -149,9 +149,8 @@ namespace BadMovieClues.UI
             le.minWidth = 100;
 
             var button = buttonGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var buyText = MainMenuScreen.UIText(buttonGo.transform, "Buy", 18, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) buyText.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(buyText.rectTransform);
 
@@ -177,9 +176,8 @@ namespace BadMovieClues.UI
             buttonGo.transform.SetParent(parent, false);
             AddFixedHeight(buttonGo, 48);
             var button = buttonGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var text = MainMenuScreen.UIText(buttonGo.transform, label, 20, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
             if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
 

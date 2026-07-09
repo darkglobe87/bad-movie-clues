@@ -178,9 +178,8 @@ namespace BadMovieClues.UI
 
             var button = buttonGo.GetComponent<Button>();
             button.interactable = interactable;
-            if (theme != null) theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var text = UIText(buttonGo.transform, label, 28, TMPro.FontStyles.Normal);
+            if (theme != null) theme.ApplyButton(button, buttonGo.GetComponent<Image>());
             if (theme != null && theme.BodyFont != null) text.font = theme.BodyFont;
             var rt = text.rectTransform;
             rt.anchorMin = Vector2.zero;

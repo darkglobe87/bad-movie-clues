@@ -71,11 +71,12 @@ namespace BadMovieClues.Services
             HapticsEnabled = _hapticsEnabled,
         });
 
-        private struct SettingsData
-        {
-            public bool ReducedEffects;
-            public bool AudioEnabled;
-            public bool HapticsEnabled;
-        }
+    [System.Serializable]
+    public class SettingsData
+    {
+        public bool ReducedEffects;
+        public bool AudioEnabled;
+        public bool HapticsEnabled;
+    }
     }
 }

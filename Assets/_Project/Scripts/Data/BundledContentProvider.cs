@@ -36,6 +36,19 @@ namespace BadMovieClues.Data
         {
             if (string.IsNullOrEmpty(imageKey)) return null;
 
+            // Try loading from Resources first
+            var resourcePath = $"Images/{imageKey}";
+            var request = Resources.LoadAsync<Sprite>(resourcePath);
+            while (!request.isDone)
+            {
+                await Awaitable.NextFrameAsync();
+            }
+
+            if (request.asset is Sprite resourceSprite)
+            {
+                return resourceSprite;
+            }
+
             try
             {
                 // Loaded as Texture2D (not Sprite) because that's the type
