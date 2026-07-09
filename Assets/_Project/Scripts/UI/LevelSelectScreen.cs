@@ -36,7 +36,7 @@ namespace BadMovieClues.UI
             Build();
         }
 
-        public void Refresh()
+        public async void Refresh()
         {
             for (var i = 0; i < _cards.Count; i++)
             {
@@ -48,9 +48,13 @@ namespace BadMovieClues.UI
             
             UpdateHeader();
 
+            // Wait one frame for the GameObject's activeInHierarchy status to propagate from the parent
+            await Awaitable.NextFrameAsync();
+
             // Stagger scale pop for all card transforms row-by-row
             for (var i = 0; i < _cards.Count; i++)
             {
+                if (_cards[i] == null) continue;
                 var cardTrans = _cards[i].transform;
                 cardTrans.localScale = Vector3.zero;
                 float delay = (i / 3) * 0.04f;
