@@ -42,16 +42,18 @@ namespace BadMovieClues.UI
 
                 if (!unlocked)
                 {
-                    _label.text = $"<color=#6A5B80><size=18>{index + 1}</size>\n🔒 Locked</color>";
+                    _label.text = $"<color=#6A5B80><size=24>{index + 1}</size>\n<size=18>LOCKED</size></color>";
                 }
                 else if (solved)
                 {
-                    string starStr = stars > 0 ? $"<color=#{ColorUtility.ToHtmlStringRGB(_theme.AccentGold)}>{new string('★', stars)}</color>" : "";
-                    _label.text = $"<color=#{ColorUtility.ToHtmlStringRGB(_theme.AccentGold)}><size=18>{index + 1}</size></color>\n<size=15><b>{level.MovieTitle}</b></size>\n{starStr}";
+                    string goldHex = ColorUtility.ToHtmlStringRGB(_theme.AccentGold);
+                    string starStr = stars > 0 ? $"<color=#{goldHex}><size=18>{new string('*', stars)}</size></color>" : "";
+                    _label.text = $"<color=#{goldHex}><size=24>{index + 1}</size></color>\n<size=20><b>{level.MovieTitle}</b></size>\n{starStr}";
                 }
                 else
                 {
-                    _label.text = $"<color=#{ColorUtility.ToHtmlStringRGB(_theme.NeutralLight)}><size=18>{index + 1}</size>\n<size=18><b>PLAY</b></size></color>";
+                    string lightHex = ColorUtility.ToHtmlStringRGB(_theme.NeutralLight);
+                    _label.text = $"<color=#{lightHex}><size=24>{index + 1}</size>\n<size=24><b>PLAY</b></size></color>";
                 }
             }
             else

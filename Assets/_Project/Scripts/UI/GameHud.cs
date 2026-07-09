@@ -354,24 +354,23 @@ namespace BadMovieClues.UI
             var config = _controller.Config;
             var over = _controller.CurrentPuzzle?.IsOver ?? true;
 
-            coinBalanceText.text = $"● {balance}";
+            coinBalanceText.text = $"Coins: {balance}";
             var hasImage = _pendingPictureSprite != null;
             pictureHintButton.interactable = !over && !_pictureRevealed && hasImage && balance >= config.PictureHintCost;
             characterHintButton.interactable = !over && !_characterRevealed && balance >= config.CharacterHintCost;
             letterHintButton.interactable = !over && balance >= config.LetterHintCost;
 
             pictureHintButtonLabel.text = !hasImage
-                ? "🖼 Picture (no image)"
-                : HintLabel("Picture", config.PictureHintCost, balance, _pictureRevealed);
-            characterHintButtonLabel.text = HintLabel("Character", config.CharacterHintCost, balance, _characterRevealed);
-            letterHintButtonLabel.text = HintLabel("Letter", config.LetterHintCost, balance, revealed: false);
+                ? "Pic (no image)"
+                : HintLabel("Pic", config.PictureHintCost, balance, _pictureRevealed);
+            characterHintButtonLabel.text = HintLabel("Who", config.CharacterHintCost, balance, _characterRevealed);
+            letterHintButtonLabel.text = HintLabel("ABC", config.LetterHintCost, balance, revealed: false);
         }
 
         private static string HintLabel(string name, int cost, int balance, bool revealed)
         {
-            string icon = name == "Picture" ? "🖼 " : (name == "Character" ? "👤 " : "🔤 ");
-            if (revealed) return $"{icon}{name} ({cost})";
-            return balance >= cost ? $"{icon}{name} ({cost})" : $"{icon}{name} ({cost}) - need {cost - balance} more";
+            if (revealed) return $"{name} ({cost})";
+            return balance >= cost ? $"{name} ({cost})" : $"{name} ({cost}) - need {cost - balance} more";
         }
 
         private static readonly string[] QwertyRows = { "QWERTYUIOP", "ASDFGHJKL", "ZXCVBNM" };

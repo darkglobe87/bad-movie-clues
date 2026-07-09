@@ -22,7 +22,7 @@ namespace BadMovieClues.UI
         private RectTransform _card;
         private TextMeshProUGUI _titleText;
         private RectTransform _starsContainer;
-        private TextMeshProUGUI[] _starLabels = new TextMeshProUGUI[3];
+        private Image[] _starImages = new Image[3];
         private TextMeshProUGUI _coinsText;
         private TextMeshProUGUI _badgeText;
         private RectTransform _buttonRow;
@@ -45,20 +45,19 @@ namespace BadMovieClues.UI
             // Pop stars in with a stagger
             for (int i = 0; i < 3; i++)
             {
-                var starLabel = _starLabels[i];
-                starLabel.text = i < stars ? "★" : "☆";
+                var starImage = _starImages[i];
                 if (_theme != null)
                 {
-                    starLabel.color = i < stars ? _theme.AccentGold : _theme.StarEmpty;
-                    if (_theme.HeadingFont != null) starLabel.font = _theme.HeadingFont;
+                    starImage.sprite = i < stars ? _theme.GetStarFilledSprite() : _theme.GetStarEmptySprite();
+                    starImage.color = i < stars ? _theme.AccentGold : _theme.StarEmpty;
                 }
                 else
                 {
-                    starLabel.color = i < stars ? Color.yellow : Color.gray;
+                    starImage.color = i < stars ? Color.yellow : Color.gray;
                 }
 
-                starLabel.transform.localScale = Vector3.zero;
-                Tween.Scale(starLabel.transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: 0.3f + i * 0.15f);
+                starImage.transform.localScale = Vector3.zero;
+                Tween.Scale(starImage.transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: 0.3f + i * 0.15f);
             }
 
             // Coin count-up animation
@@ -71,7 +70,7 @@ namespace BadMovieClues.UI
             // New best badge
             if (isNewBest)
             {
-                _badgeText.text = "★ NEW BEST ★";
+                _badgeText.text = "NEW BEST";
                 _badgeText.gameObject.SetActive(true);
                 _badgeText.transform.localScale = Vector3.zero;
                 Tween.Scale(_badgeText.transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: 0.8f);
@@ -105,7 +104,7 @@ namespace BadMovieClues.UI
             // Hide stars
             for (int i = 0; i < 3; i++)
             {
-                _starLabels[i].transform.localScale = Vector3.zero;
+                _starImages[i].transform.localScale = Vector3.zero;
             }
 
             _card.localScale = Vector3.zero;
@@ -174,8 +173,15 @@ namespace BadMovieClues.UI
 
             for (int i = 0; i < 3; i++)
             {
-                var starLabel = MainMenuScreen.UIText(_starsContainer, "★", 40, FontStyles.Bold);
-                _starLabels[i] = starLabel;
+                var starGo = new GameObject($"Star_{i}", typeof(RectTransform), typeof(Image));
+                starGo.transform.SetParent(_starsContainer, false);
+                var starImg = starGo.GetComponent<Image>();
+                var le = starGo.AddComponent<LayoutElement>();
+                le.preferredWidth = 48;
+                le.preferredHeight = 48;
+                le.minWidth = 48;
+                le.minHeight = 48;
+                _starImages[i] = starImg;
             }
 
             _coinsText = MainMenuScreen.UIText(_card, "", 24, FontStyles.Normal);

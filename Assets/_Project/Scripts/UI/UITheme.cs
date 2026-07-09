@@ -63,49 +63,89 @@ namespace BadMovieClues.UI
         public Color LockedOverlay = new Color32(0x1A, 0x10, 0x2A, 0xCC);
         public Color ButtonGradientTop = new Color32(0xFF, 0xFF, 0xFF, 0x1A);
 
-        /// <summary>Applies the 9-slice button sprite/colors to a Button + Image, if the theme has them assigned.</summary>
+        /// <summary>
+        /// Called by Unity when the asset is loaded. Fixes any extended palette
+        /// colors that are still at the unserialised default of (0,0,0,0).
+        /// </summary>
+        private void OnEnable()
+        {
+            FixColor(ref CardBackground, new Color32(0x35, 0x20, 0x4E, 0xFF));
+            FixColor(ref ShadowColor, new Color32(0x15, 0x0D, 0x22, 0xCC));
+            FixColor(ref GlowGold, new Color32(0xFF, 0xD7, 0x70, 0x80));
+            FixColor(ref SeparatorColor, new Color32(0x4A, 0x30, 0x6A, 0xFF));
+            FixColor(ref StarFilled, new Color32(0xFF, 0xC2, 0x4B, 0xFF));
+            FixColor(ref StarEmpty, new Color32(0x4A, 0x30, 0x6A, 0xFF));
+            FixColor(ref CoinTextColor, new Color32(0xFF, 0xD7, 0x70, 0xFF));
+            FixColor(ref CorrectGreen, new Color32(0x5C, 0xD6, 0x5C, 0xFF));
+            FixColor(ref LockedOverlay, new Color32(0x1A, 0x10, 0x2A, 0xCC));
+            FixColor(ref ButtonGradientTop, new Color32(0xFF, 0xFF, 0xFF, 0x1A));
+        }
+
+        private static void FixColor(ref Color color, Color fallback)
+        {
+            // A color with all channels at exactly zero was never serialised
+            if (color.r == 0f && color.g == 0f && color.b == 0f && color.a == 0f)
+                color = fallback;
+        }
+
+        /// <summary>Applies the 9-slice button sprite/colors to a Button + Image.
+        /// Falls back to a solid tinted look if no sprite is assigned.</summary>
         public void ApplyButton(Button button, Image image)
         {
-            if (ButtonNormalSprite == null) return;
-
-            image.sprite = ButtonNormalSprite;
-            image.type = Image.Type.Sliced;
-            image.color = Color.white;
+            if (ButtonNormalSprite != null)
+            {
+                image.sprite = ButtonNormalSprite;
+                image.type = Image.Type.Sliced;
+                image.color = Color.white;
+            }
+            else
+            {
+                // Solid color fallback — still looks themed
+                image.color = CardBackground;
+            }
 
             var colors = button.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = Color.white;
+            colors.normalColor = ButtonNormalSprite != null ? Color.white : CardBackground;
+            colors.highlightedColor = ButtonNormalSprite != null ? Color.white : CardBackground;
             colors.pressedColor = NeutralLight;
-            colors.disabledColor = new Color(1f, 1f, 1f, 0.5f);
+            colors.disabledColor = ButtonNormalSprite != null
+                ? new Color(1f, 1f, 1f, 0.5f)
+                : new Color(CardBackground.r, CardBackground.g, CardBackground.b, 0.5f);
             button.colors = colors;
         }
 
-        /// <summary>Applies the tile sprite/color to a keyboard key or blanks-row tile background, if assigned.</summary>
+        /// <summary>Applies the tile sprite/color to a keyboard key or blanks-row tile background.</summary>
         public void ApplyTile(Image image, bool isKeyboardKey)
         {
             var sprite = isKeyboardKey ? KeySprite : TileSprite;
-            if (sprite == null) return;
-
-            image.sprite = sprite;
-            image.type = Image.Type.Sliced;
+            if (sprite != null)
+            {
+                image.sprite = sprite;
+                image.type = Image.Type.Sliced;
+            }
             image.color = NeutralLight;
         }
 
-        /// <summary>Applies the panel sprite to an Image for backgrounds/cards.</summary>
+        /// <summary>Applies the panel sprite to an Image for backgrounds/cards.
+        /// Falls back to a solid CardBackground color if no sprite is assigned.</summary>
         public void ApplyPanel(Image image)
         {
-            if (PanelSprite == null) return;
-            image.sprite = PanelSprite;
-            image.type = Image.Type.Sliced;
+            if (PanelSprite != null)
+            {
+                image.sprite = PanelSprite;
+                image.type = Image.Type.Sliced;
+            }
             image.color = CardBackground;
         }
 
         /// <summary>Applies card styling: panel sprite with optional interactivity tint.</summary>
         public void ApplyCard(Image image, bool isInteractive)
         {
-            if (PanelSprite == null) return;
-            image.sprite = PanelSprite;
-            image.type = Image.Type.Sliced;
+            if (PanelSprite != null)
+            {
+                image.sprite = PanelSprite;
+                image.type = Image.Type.Sliced;
+            }
             image.color = isInteractive ? CardBackground : LockedOverlay;
         }
 
@@ -141,13 +181,37 @@ namespace BadMovieClues.UI
             return texture;
         }
 
-        /// <summary>Builds a star display string using filled/empty star characters.</summary>
+        /// <summary>Builds a star display string using safe ASCII characters.</summary>
         public string StarDisplay(int earned, int max = 3)
         {
             var sb = new System.Text.StringBuilder();
             for (var i = 0; i < max; i++)
-                sb.Append(i < earned ? "★" : "☆");
+                sb.Append(i < earned ? "*" : "-");
             return sb.ToString();
+        }
+
+        /// <summary>Gets the star filled sprite — Kenney asset if assigned, procedural fallback otherwise.</summary>
+        public Sprite GetStarFilledSprite()
+        {
+            return StarFilledSprite != null ? StarFilledSprite : ProceduralIcons.StarFilled;
+        }
+
+        /// <summary>Gets the star empty sprite — Kenney asset if assigned, procedural fallback otherwise.</summary>
+        public Sprite GetStarEmptySprite()
+        {
+            return StarEmptySprite != null ? StarEmptySprite : ProceduralIcons.StarEmpty;
+        }
+
+        /// <summary>Gets the toggle background sprite — Kenney asset if assigned, procedural fallback.</summary>
+        public Sprite GetToggleBackgroundSprite()
+        {
+            return ToggleBackgroundSprite != null ? ToggleBackgroundSprite : ProceduralIcons.RoundedRect;
+        }
+
+        /// <summary>Gets the checkmark sprite — Kenney asset if assigned, procedural fallback.</summary>
+        public Sprite GetCheckmarkSprite()
+        {
+            return ToggleCheckmarkSprite != null ? ToggleCheckmarkSprite : ProceduralIcons.Checkmark;
         }
 
         /// <summary>Creates a horizontal separator line as a UI Image.</summary>
@@ -165,6 +229,7 @@ namespace BadMovieClues.UI
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = height;
             le.minHeight = height;
+            le.flexibleHeight = 0f;
             le.flexibleWidth = 1f;
             return go;
         }

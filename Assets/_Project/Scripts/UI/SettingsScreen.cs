@@ -116,6 +116,7 @@ namespace BadMovieClues.UI
             var le = go.AddComponent<LayoutElement>();
             le.preferredHeight = height;
             le.minHeight = height;
+            le.flexibleHeight = 0;
             return le;
         }
 
@@ -144,7 +145,8 @@ namespace BadMovieClues.UI
             rowLayout.childControlWidth = true;
             rowLayout.childControlHeight = true;
             rowLayout.childForceExpandWidth = false;
-            rowLayout.childForceExpandHeight = true;
+            rowLayout.childForceExpandHeight = false;
+            rowLayout.padding = new RectOffset(8, 8, 0, 0);
             AddFixedHeight(rowGo, 48);
 
             var toggleGo = new GameObject("Toggle", typeof(RectTransform), typeof(Image), typeof(Toggle));
@@ -154,22 +156,28 @@ namespace BadMovieClues.UI
             toggleLe.preferredHeight = 44;
             toggleLe.minWidth = 44;
             toggleLe.minHeight = 44;
+            toggleLe.flexibleHeight = 0;
+            toggleLe.flexibleWidth = 0;
             
             var bgImage = toggleGo.GetComponent<Image>();
-            if (_theme != null && _theme.ToggleBackgroundSprite != null)
+            if (_theme != null)
             {
-                bgImage.sprite = _theme.ToggleBackgroundSprite;
+                bgImage.sprite = _theme.GetToggleBackgroundSprite();
                 bgImage.type = Image.Type.Sliced;
             }
-            bgImage.color = Color.white;
+            bgImage.color = _theme != null ? _theme.SeparatorColor : new Color32(0x4A, 0x30, 0x6A, 0xFF);
 
             var checkGo = new GameObject("Checkmark", typeof(RectTransform), typeof(Image));
             checkGo.transform.SetParent(toggleGo.transform, false);
-            MainMenuScreen.StretchFull((RectTransform)checkGo.transform);
+            var checkRt = (RectTransform)checkGo.transform;
+            // Inset the checkmark slightly inside the toggle background
+            checkRt.anchorMin = new Vector2(0.15f, 0.15f);
+            checkRt.anchorMax = new Vector2(0.85f, 0.85f);
+            checkRt.offsetMin = checkRt.offsetMax = Vector2.zero;
             var checkImage = checkGo.GetComponent<Image>();
-            if (_theme != null && _theme.ToggleCheckmarkSprite != null)
+            if (_theme != null)
             {
-                checkImage.sprite = _theme.ToggleCheckmarkSprite;
+                checkImage.sprite = _theme.GetCheckmarkSprite();
             }
             checkImage.color = _theme != null ? _theme.AccentGold : Color.green;
 
@@ -185,7 +193,9 @@ namespace BadMovieClues.UI
 
             var labelGo = new GameObject("Label", typeof(RectTransform));
             labelGo.transform.SetParent(rowGo.transform, false);
-            labelGo.AddComponent<LayoutElement>().flexibleWidth = 1;
+            var labelLe = labelGo.AddComponent<LayoutElement>();
+            labelLe.flexibleWidth = 1;
+            labelLe.flexibleHeight = 0;
             var labelText = MainMenuScreen.UIText(labelGo.transform, label, 20, FontStyles.Normal);
             if (_theme != null && _theme.BodyFont != null) labelText.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(labelText.rectTransform);

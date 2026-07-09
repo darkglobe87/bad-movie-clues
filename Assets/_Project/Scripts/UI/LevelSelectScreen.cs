@@ -84,8 +84,8 @@ namespace BadMovieClues.UI
             contentRt.offsetMax = new Vector2(0f, contentRt.offsetMax.y);
 
             var grid = contentGo.GetComponent<GridLayoutGroup>();
-            grid.cellSize = new Vector2(160, 100);
-            grid.spacing = new Vector2(12, 12);
+            grid.cellSize = new Vector2(260, 160);
+            grid.spacing = new Vector2(16, 16);
             grid.constraint = GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 3;
             grid.childAlignment = TextAnchor.UpperCenter;
@@ -162,7 +162,7 @@ namespace BadMovieClues.UI
                 }
                 
                 string goldHex = _theme != null ? ColorUtility.ToHtmlStringRGB(_theme.AccentGold) : "FFC24B";
-                _headerText.text = $"Choose a Level\n<size=18><color=#{goldHex}>★ {totalStars}</color>  |  Solved {solvedCount}/{totalLevels}</size>";
+                _headerText.text = $"Choose a Level\n<size=18><color=#{goldHex}>Stars: {totalStars}</color>  |  Solved {solvedCount}/{totalLevels}</size>";
             }
         }
 
@@ -172,8 +172,9 @@ namespace BadMovieClues.UI
             backGo.transform.SetParent(transform, false);
             var backRt = (RectTransform)backGo.transform;
             backRt.anchorMin = new Vector2(0.3f, 0.03f);
-            backRt.anchorMax = new Vector2(0.7f, 0.12f);
-            backRt.offsetMin = backRt.offsetMax = Vector2.zero;
+            backRt.anchorMax = new Vector2(0.7f, 0.03f);
+            backRt.anchoredPosition = new Vector2(0f, 28f);
+            backRt.sizeDelta = new Vector2(0f, 56f);
             var button = backGo.GetComponent<Button>();
             if (_theme != null) _theme.ApplyButton(button, backGo.GetComponent<Image>());
             var text = MainMenuScreen.UIText(backGo.transform, "< Back", 22, FontStyles.Normal);
