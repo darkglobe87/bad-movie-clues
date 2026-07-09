@@ -372,7 +372,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
-            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.gameObject.SetActive(false);
             _levelSelectScreen.gameObject.SetActive(true);
             _levelSelectScreen.Refresh();
         }
@@ -382,7 +382,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
-            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.gameObject.SetActive(false);
             _settingsScreen.gameObject.SetActive(true);
             _settingsScreen.Refresh();
         }
@@ -392,7 +392,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
-            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.gameObject.SetActive(false);
             _storeScreen.gameObject.SetActive(true);
             _storeScreen.Refresh();
         }
@@ -405,7 +405,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(true);
             _buttonPanel.gameObject.SetActive(true);
             if (_coinText != null) _coinText.gameObject.SetActive(true);
-            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(true);
+            if (_streakText != null) _streakText.gameObject.SetActive(true);
             UpdateCoinDisplay();
             RefreshDailyChallengeButton();
         }
@@ -467,7 +467,7 @@ namespace BadMovieClues.UI
                     if (streakDay > 1)
                     {
                         _streakText.text = $"\U0001F525 Day {streakDay}";
-                        _streakText.transform.parent.gameObject.SetActive(true);
+                        _streakText.gameObject.SetActive(true);
                     }
                 }
             });
