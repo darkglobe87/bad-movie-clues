@@ -33,8 +33,6 @@ namespace BadMovieClues.Services
 
         public void PlayMusic(AudioClip clip, float volume = 0.5f)
         {
-            if (clip == null) return;
-
             if (_musicSource == null)
             {
                 var musicGo = new GameObject("MainMenuBGM", typeof(AudioSource));
@@ -42,6 +40,20 @@ namespace BadMovieClues.Services
                 _musicSource = musicGo.GetComponent<AudioSource>();
                 _musicSource.loop = true;
             }
+
+            if (clip == null)
+            {
+                var synth = _musicSource.GetComponent<AmbientSynth>();
+                if (synth == null)
+                {
+                    synth = _musicSource.gameObject.AddComponent<AmbientSynth>();
+                }
+                _musicSource.mute = !_enabled;
+                return;
+            }
+
+            var existingSynth = _musicSource.GetComponent<AmbientSynth>();
+            if (existingSynth != null) Object.Destroy(existingSynth);
 
             if (_musicSource.clip == clip && _musicSource.isPlaying) return;
 
@@ -56,6 +68,8 @@ namespace BadMovieClues.Services
             if (_musicSource != null)
             {
                 _musicSource.Stop();
+                var synth = _musicSource.GetComponent<AmbientSynth>();
+                if (synth != null) Object.Destroy(synth);
             }
         }
     }

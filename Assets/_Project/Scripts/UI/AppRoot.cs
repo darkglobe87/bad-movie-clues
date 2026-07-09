@@ -72,6 +72,10 @@ namespace BadMovieClues.UI
             Settings = new SettingsService(SaveService);
             ApplySettings();
             Settings.Changed += ApplySettings;
+
+            // Start BGM
+            var bgmClip = Resources.Load<AudioClip>("Audio/BGM");
+            AudioService.PlayMusic(bgmClip, 0.4f);
         }
 
         private void ApplySettings()
