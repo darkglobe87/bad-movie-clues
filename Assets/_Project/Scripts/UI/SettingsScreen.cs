@@ -44,6 +44,7 @@ namespace BadMovieClues.UI
 
         public void Refresh()
         {
+            Debug.Log($"[SettingsScreen] Refresh() - activeSelf: {gameObject.activeSelf} | activeInHierarchy: {gameObject.activeInHierarchy} | localScale: {transform.localScale} | lossyScale: {transform.lossyScale}");
             _reducedEffectsToggle.SetIsOnWithoutNotify(_settings.ReducedEffects);
             _muteToggle.SetIsOnWithoutNotify(_settings.AudioEnabled);
             _hapticsToggle.SetIsOnWithoutNotify(_settings.HapticsEnabled);
@@ -51,9 +52,11 @@ namespace BadMovieClues.UI
 
         private void Build()
         {
+            Debug.Log($"[SettingsScreen] Build() starting... Parent: {(transform.parent != null ? transform.parent.name : "null")}");
             var panelGo = new GameObject("Panel", typeof(RectTransform), typeof(Image), typeof(VerticalLayoutGroup));
             panelGo.transform.SetParent(transform, false);
             var panelRt = (RectTransform)panelGo.transform;
+            Debug.Log($"[SettingsScreen] Panel scale: {panelRt.localScale} | lossyScale: {panelRt.lossyScale}");
             panelRt.anchorMin = new Vector2(0.1f, 0.15f);
             panelRt.anchorMax = new Vector2(0.9f, 0.85f);
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
