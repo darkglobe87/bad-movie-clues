@@ -51,6 +51,12 @@ namespace BadMovieClues.UI
         public Color NeutralLight = new Color32(0xF5, 0xEC, 0xD9, 0xFF);
         public Color DangerRed = new Color32(0xC6, 0x41, 0x3B, 0xFF);
 
+        [Header("Button Customization")]
+        public Color ButtonColor = new Color32(0xFF, 0x4E, 0x8B, 0xFF);
+        public Color ButtonTextColor = new Color32(0xF5, 0xEC, 0xD9, 0xFF);
+        public Color KeyboardKeyColor = new Color32(0x56, 0x3A, 0x7A, 0xFF);
+        public Color KeyboardKeyTextColor = new Color32(0xF5, 0xEC, 0xD9, 0xFF);
+
         [Header("Extended Palette")]
         public Color CardBackground = new Color32(0x35, 0x20, 0x4E, 0xFF);
         public Color ShadowColor = new Color32(0x15, 0x0D, 0x22, 0xCC);
@@ -69,6 +75,11 @@ namespace BadMovieClues.UI
         /// </summary>
         private void OnEnable()
         {
+            FixColor(ref ButtonColor, new Color32(0xFF, 0x4E, 0x8B, 0xFF));
+            FixColor(ref ButtonTextColor, new Color32(0xF5, 0xEC, 0xD9, 0xFF));
+            FixColor(ref KeyboardKeyColor, new Color32(0x56, 0x3A, 0x7A, 0xFF));
+            FixColor(ref KeyboardKeyTextColor, new Color32(0xF5, 0xEC, 0xD9, 0xFF));
+
             FixColor(ref CardBackground, new Color32(0x35, 0x20, 0x4E, 0xFF));
             FixColor(ref ShadowColor, new Color32(0x15, 0x0D, 0x22, 0xCC));
             FixColor(ref GlowGold, new Color32(0xFF, 0xD7, 0x70, 0x80));
@@ -92,37 +103,43 @@ namespace BadMovieClues.UI
         /// Falls back to a solid tinted look if no sprite is assigned.</summary>
         public void ApplyButton(Button button, Image image)
         {
-            if (ButtonNormalSprite != null)
-            {
-                image.sprite = ButtonNormalSprite;
-                image.type = Image.Type.Sliced;
-                image.color = Color.white;
-            }
-            else
-            {
-                // Solid color fallback — still looks themed
-                image.color = CardBackground;
-            }
+            bool isKey = button.name.StartsWith("Key_");
+            Color baseColor = isKey ? KeyboardKeyColor : ButtonColor;
+            Color textColor = isKey ? KeyboardKeyTextColor : ButtonTextColor;
+
+            var sprite = ButtonNormalSprite != null ? ButtonNormalSprite : ProceduralIcons.RoundedRect;
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
+            image.color = Color.white;
 
             var colors = button.colors;
-            colors.normalColor = ButtonNormalSprite != null ? Color.white : CardBackground;
-            colors.highlightedColor = ButtonNormalSprite != null ? Color.white : CardBackground;
+            colors.normalColor = baseColor;
+            colors.highlightedColor = new Color(
+                Mathf.Min(baseColor.r * 1.15f, 1f),
+                Mathf.Min(baseColor.g * 1.15f, 1f),
+                Mathf.Min(baseColor.b * 1.15f, 1f),
+                baseColor.a
+            );
             colors.pressedColor = NeutralLight;
-            colors.disabledColor = ButtonNormalSprite != null
-                ? new Color(1f, 1f, 1f, 0.5f)
-                : new Color(CardBackground.r, CardBackground.g, CardBackground.b, 0.5f);
+            colors.disabledColor = new Color(baseColor.r, baseColor.g, baseColor.b, 0.5f);
             button.colors = colors;
+
+            // Automatically find and style the TMPro label inside the button
+            var text = button.GetComponentInChildren<TextMeshProUGUI>();
+            if (text != null)
+            {
+                text.color = textColor;
+                if (BodyFont != null) text.font = BodyFont;
+            }
         }
 
         /// <summary>Applies the tile sprite/color to a keyboard key or blanks-row tile background.</summary>
         public void ApplyTile(Image image, bool isKeyboardKey)
         {
             var sprite = isKeyboardKey ? KeySprite : TileSprite;
-            if (sprite != null)
-            {
-                image.sprite = sprite;
-                image.type = Image.Type.Sliced;
-            }
+            sprite = sprite != null ? sprite : ProceduralIcons.RoundedRect;
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
             image.color = NeutralLight;
         }
 
@@ -130,22 +147,18 @@ namespace BadMovieClues.UI
         /// Falls back to a solid CardBackground color if no sprite is assigned.</summary>
         public void ApplyPanel(Image image)
         {
-            if (PanelSprite != null)
-            {
-                image.sprite = PanelSprite;
-                image.type = Image.Type.Sliced;
-            }
+            var sprite = PanelSprite != null ? PanelSprite : ProceduralIcons.RoundedRect;
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
             image.color = CardBackground;
         }
 
         /// <summary>Applies card styling: panel sprite with optional interactivity tint.</summary>
         public void ApplyCard(Image image, bool isInteractive)
         {
-            if (PanelSprite != null)
-            {
-                image.sprite = PanelSprite;
-                image.type = Image.Type.Sliced;
-            }
+            var sprite = PanelSprite != null ? PanelSprite : ProceduralIcons.RoundedRect;
+            image.sprite = sprite;
+            image.type = Image.Type.Sliced;
             image.color = isInteractive ? CardBackground : LockedOverlay;
         }
 
