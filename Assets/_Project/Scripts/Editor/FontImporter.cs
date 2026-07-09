@@ -36,6 +36,13 @@ namespace BadMovieClues.EditorTools
             }
 
             var ttfPath = AssetDatabase.GUIDToAssetPath(ttfGuids[0]);
+            var importer = AssetImporter.GetAtPath(ttfPath) as TrueTypeFontImporter;
+            if (importer != null && !importer.includeFontData)
+            {
+                importer.includeFontData = true;
+                importer.SaveAndReimport();
+            }
+
             var sourceFont = AssetDatabase.LoadAssetAtPath<Font>(ttfPath);
             if (sourceFont == null)
             {
@@ -53,7 +60,30 @@ namespace BadMovieClues.EditorTools
 
             var sdfPath = $"{FontsFolder}/Fredoka SDF.asset";
             AssetDatabase.CreateAsset(tmpFont, sdfPath);
+
+            // Add material and atlas textures as sub-assets so they are saved persistently to disk
+            if (tmpFont.material != null)
+            {
+                AssetDatabase.AddObjectToAsset(tmpFont.material, tmpFont);
+            }
+            if (tmpFont.atlasTexture != null)
+            {
+                AssetDatabase.AddObjectToAsset(tmpFont.atlasTexture, tmpFont);
+            }
+            if (tmpFont.atlasTextures != null)
+            {
+                foreach (var tex in tmpFont.atlasTextures)
+                {
+                    if (tex != null && tex != tmpFont.atlasTexture)
+                    {
+                        AssetDatabase.AddObjectToAsset(tex, tmpFont);
+                    }
+                }
+            }
+
+            EditorUtility.SetDirty(tmpFont);
             AssetDatabase.SaveAssets();
+            AssetDatabase.Refresh();
             Debug.Log($"[FontImporter] Created TMP font asset at {sdfPath}");
 
             // Assign to UITheme

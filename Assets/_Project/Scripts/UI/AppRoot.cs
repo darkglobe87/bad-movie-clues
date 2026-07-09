@@ -31,6 +31,7 @@ namespace BadMovieClues.UI
         public IHapticsService Haptics { get; private set; }
         public DailyPuzzleService DailyChallenge { get; private set; }
         public RetentionService Retention { get; private set; }
+        public IAdService AdService { get; private set; }
 
         /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
         /// read by GameBootstrap instead of always loading index 0.</summary>
@@ -74,6 +75,7 @@ namespace BadMovieClues.UI
             Haptics = new AndroidHapticsService();
             DailyChallenge = new DailyPuzzleService(SaveService);
             Retention = new RetentionService(SaveService);
+            AdService = new StubAdService();
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.

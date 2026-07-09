@@ -9,6 +9,7 @@
         "BadMovieClues.Data",
         "BadMovieClues.Services",
         "BadMovieClues.Progression",
+        "BadMovieClues.Core",
         "Newtonsoft.Json"
     ],
     "includePlatforms": [

@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using BadMovieClues.Core;
 using BadMovieClues.Data;
@@ -54,6 +55,10 @@ namespace BadMovieClues.UI
         private int _previousStars;
         private UIObjectPool<Image> _tilePool;
         private bool _isDailySession;
+        private Button _skipButton;
+        private TextMeshProUGUI _skipButtonLabel;
+        private RectTransform _skipConfirmPanel;
+        private Button _skipWithCoinsButton;
 
         public void Bind(GameController controller, IAudioService audioService)
         {
@@ -83,6 +88,15 @@ namespace BadMovieClues.UI
             pictureHintButton.onClick.AddListener(OnPictureHintClicked);
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
             letterHintButton.onClick.AddListener(OnLetterHintClicked);
+
+            controller.LevelSkipped += OnSkipped;
+
+            // Only add Skip button if it's not a Daily Challenge
+            if (!AppRoot.Instance.IsDailyChallenge && !_isDailySession)
+            {
+                BuildSkipButton(pictureHintButton.transform.parent);
+                BuildSkipConfirmPanel();
+            }
 
             // RetroTVFrame removed to resolve image loading/rendering and layout group nesting issues.
 
@@ -390,6 +404,16 @@ namespace BadMovieClues.UI
                 : HintLabel("Pic", config.PictureHintCost, balance, _pictureRevealed);
             characterHintButtonLabel.text = HintLabel("Who", config.CharacterHintCost, balance, _characterRevealed);
             letterHintButtonLabel.text = HintLabel("ABC", config.LetterHintCost, balance, revealed: false);
+
+            if (_skipButton != null)
+            {
+                _skipButton.interactable = !over;
+            }
+
+            if (_skipWithCoinsButton != null)
+            {
+                _skipWithCoinsButton.interactable = balance >= config.SkipLevelCost;
+            }
         }
 
         private static string HintLabel(string name, int cost, int balance, bool revealed)
@@ -519,6 +543,133 @@ namespace BadMovieClues.UI
             var startPos = bannerRt.anchoredPosition + new Vector2(0, 60f);
             bannerRt.anchoredPosition = startPos;
             Tween.UIAnchoredPosition(bannerRt, endValue: startPos - new Vector2(0, 60f), duration: 0.4f, ease: Ease.OutBack);
+        }
+
+        private void OnSkipped()
+        {
+            SetStatus("LEVEL SKIPPED");
+            _levelCompleteScreen.ShowWon(_controller.CurrentLevel.MovieTitle, 0, 0, false, OnNextClicked, _isDailySession);
+        }
+
+        private void BuildSkipButton(Transform parent)
+        {
+            var go = new GameObject("SkipButton", typeof(RectTransform), typeof(Image), typeof(Button));
+            go.transform.SetParent(parent, false);
+
+            var le = go.AddComponent<LayoutElement>();
+            le.preferredWidth = 90;
+            le.preferredHeight = 48;
+            le.minWidth = 90;
+            le.minHeight = 48;
+
+            _skipButton = go.GetComponent<Button>();
+
+            var labelGo = new GameObject("Label", typeof(RectTransform));
+            labelGo.transform.SetParent(go.transform, false);
+            _skipButtonLabel = labelGo.AddComponent<TextMeshProUGUI>();
+            _skipButtonLabel.text = "Skip";
+            _skipButtonLabel.alignment = TextAlignmentOptions.Center;
+            _skipButtonLabel.fontSize = 18;
+
+            var labelRt = (RectTransform)labelGo.transform;
+            labelRt.anchorMin = Vector2.zero;
+            labelRt.anchorMax = Vector2.one;
+            labelRt.offsetMin = labelRt.offsetMax = Vector2.zero;
+
+            if (theme != null)
+            {
+                theme.ApplyButton(_skipButton, go.GetComponent<Image>());
+                if (theme.BodyFont != null) _skipButtonLabel.font = theme.BodyFont;
+            }
+
+            _skipButton.onClick.AddListener(OnSkipButtonClicked);
+        }
+
+        private void OnSkipButtonClicked()
+        {
+            if (_skipConfirmPanel != null)
+            {
+                _skipConfirmPanel.gameObject.SetActive(true);
+            }
+        }
+
+        private void BuildSkipConfirmPanel()
+        {
+            var go = new GameObject("SkipConfirmPanel", typeof(RectTransform), typeof(Image));
+            go.transform.SetParent(canvasRoot, false);
+            _skipConfirmPanel = (RectTransform)go.transform;
+            _skipConfirmPanel.anchorMin = new Vector2(0.1f, 0.35f);
+            _skipConfirmPanel.anchorMax = new Vector2(0.9f, 0.65f);
+            _skipConfirmPanel.offsetMin = _skipConfirmPanel.offsetMax = Vector2.zero;
+
+            var img = go.GetComponent<Image>();
+            if (theme != null) theme.ApplyPanel(img);
+            else img.color = new Color32(0x35, 0x20, 0x4E, 0xFF);
+
+            var text = MainMenuScreen.UIText(_skipConfirmPanel,
+                "Skip this level?\nThis will mark it as complete with 0 stars.\nYou can watch a rewarded ad to skip for free, or spend 100 coins.",
+                18, FontStyles.Normal);
+            if (theme != null && theme.BodyFont != null) text.font = theme.BodyFont;
+            var textRt = text.rectTransform;
+            textRt.anchorMin = new Vector2(0.05f, 0.45f);
+            textRt.anchorMax = new Vector2(0.95f, 0.92f);
+            textRt.offsetMin = textRt.offsetMax = Vector2.zero;
+            if (theme != null) text.color = theme.NeutralLight;
+
+            var buttonRowGo = new GameObject("Buttons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            buttonRowGo.transform.SetParent(_skipConfirmPanel, false);
+            var buttonRowRt = (RectTransform)buttonRowGo.transform;
+            buttonRowRt.anchorMin = new Vector2(0.05f, 0.08f);
+            buttonRowRt.anchorMax = new Vector2(0.95f, 0.35f);
+            buttonRowRt.offsetMin = buttonRowRt.offsetMax = Vector2.zero;
+            var buttonRowLayout = buttonRowGo.GetComponent<HorizontalLayoutGroup>();
+            buttonRowLayout.spacing = 10;
+            buttonRowLayout.childControlWidth = true;
+            buttonRowLayout.childControlHeight = true;
+            buttonRowLayout.childForceExpandWidth = true;
+            buttonRowLayout.childForceExpandHeight = true;
+
+            BuildSkipModalButton(buttonRowRt, "Watch Ad", OnSkipWithAdClicked);
+            _skipWithCoinsButton = BuildSkipModalButton(buttonRowRt, "100 Coins", OnSkipWithCoinsClicked);
+            BuildSkipModalButton(buttonRowRt, "Cancel", () => _skipConfirmPanel.gameObject.SetActive(false));
+
+            _skipConfirmPanel.gameObject.SetActive(false);
+        }
+
+        private Button BuildSkipModalButton(Transform parent, string label, Action onClick)
+        {
+            var buttonGo = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
+            buttonGo.transform.SetParent(parent, false);
+            var button = buttonGo.GetComponent<Button>();
+            var text = MainMenuScreen.UIText(buttonGo.transform, label, 18, FontStyles.Normal);
+            if (theme != null) theme.ApplyButton(button, buttonGo.GetComponent<Image>());
+            if (theme != null && theme.BodyFont != null) text.font = theme.BodyFont;
+            MainMenuScreen.StretchFull(text.rectTransform);
+
+            button.onClick.AddListener(() =>
+            {
+                _audioService?.PlayOneShot(clickSound);
+                onClick();
+            });
+            return button;
+        }
+
+        private void OnSkipWithAdClicked()
+        {
+            _skipConfirmPanel.gameObject.SetActive(false);
+            AppRoot.Instance.AdService.ShowRewardedAd(success =>
+            {
+                if (success)
+                {
+                    _controller.TrySkipLevel(useCoins: false);
+                }
+            });
+        }
+
+        private void OnSkipWithCoinsClicked()
+        {
+            _skipConfirmPanel.gameObject.SetActive(false);
+            _controller.TrySkipLevel(useCoins: true);
         }
     }
 }

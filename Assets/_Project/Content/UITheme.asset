@@ -25,8 +25,8 @@ MonoBehaviour:
   StarFilledSprite: {fileID: 0}
   StarEmptySprite: {fileID: 0}
   SeparatorSprite: {fileID: 0}
-  HeadingFont: {fileID: 0}
-  BodyFont: {fileID: 0}
+  HeadingFont: {fileID: 11400000, guid: 65c7fa6a1041dd3468e221ca7c3658b1, type: 2}
+  BodyFont: {fileID: 11400000, guid: 65c7fa6a1041dd3468e221ca7c3658b1, type: 2}
   BackgroundTop: {r: 0.16470589, g: 0.101960786, b: 0.24313726, a: 1}
   BackgroundBottom: {r: 0.23921569, g: 0.14117648, b: 0.34901962, a: 1}
   AccentGold: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
@@ -34,6 +34,10 @@ MonoBehaviour:
   AccentLime: {r: 0.7137255, g: 1, b: 0.23529412, a: 1}
   NeutralLight: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
   DangerRed: {r: 0.7764706, g: 0.25490198, b: 0.23137255, a: 1}
+  ButtonColor: {r: 1, g: 0.30588236, b: 0.54509807, a: 1}
+  ButtonTextColor: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
+  KeyboardKeyColor: {r: 0.3372549, g: 0.22745098, b: 0.47843137, a: 1}
+  KeyboardKeyTextColor: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
   CardBackground: {r: 0.20784314, g: 0.1254902, b: 0.30588236, a: 1}
   ShadowColor: {r: 0.08235294, g: 0.050980393, b: 0.13333334, a: 0.8}
   GlowGold: {r: 1, g: 0.84313726, b: 0.4392157, a: 0.5019608}

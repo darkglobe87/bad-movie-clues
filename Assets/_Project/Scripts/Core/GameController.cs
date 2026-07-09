@@ -41,6 +41,7 @@ namespace BadMovieClues.Core
         public event Action<LevelData, Sprite> LevelLoaded;
         public event Action Won;
         public event Action Lost;
+        public event Action LevelSkipped;
 
         public GameController(
             IContentProvider contentProvider,
@@ -94,6 +95,26 @@ namespace BadMovieClues.Core
             CurrentPuzzle.Lost += () => Lost?.Invoke();
 
             LevelLoaded?.Invoke(level, sprite);
+        }
+
+        public bool TrySkipLevel(bool useCoins)
+        {
+            if (CurrentPuzzle == null)
+                throw new InvalidOperationException("No level loaded yet.");
+
+            if (_isDailyChallenge)
+                throw new InvalidOperationException("Daily challenges cannot be skipped.");
+
+            if (useCoins)
+            {
+                if (!Currency.TrySpend(Config.SkipLevelCost))
+                    return false;
+            }
+
+            StarsEarned = 0;
+            _progressService.MarkSolved(CurrentLevel.Id, CurrentIndex, 0);
+            LevelSkipped?.Invoke();
+            return true;
         }
 
         public GuessOutcome GuessLetter(char letter)

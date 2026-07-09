@@ -181,7 +181,9 @@ namespace BadMovieClues.UI
             // Slide-in staggered animations
             BuildMenuButton(_buttonPanel, "PLAY", OnPlayClicked, 0.1f);
             _dailyChallengeButton = BuildMenuButton(_buttonPanel, "DAILY CHALLENGE", OnDailyChallengeClicked, 0.15f);
-            BuildMenuButton(_buttonPanel, "STORE", OnStoreClicked, 0.2f);
+            Button adBtn = null;
+            adBtn = BuildMenuButton(_buttonPanel, "FREE COINS (AD)", () => OnFreeCoinsAdClicked(adBtn), 0.2f);
+            BuildMenuButton(_buttonPanel, "STORE", OnStoreClicked, 0.25f);
             BuildMenuButton(_buttonPanel, "SETTINGS", OnSettingsClicked, 0.3f);
 
             // Apply gold tint to daily challenge button to make it visually distinct
@@ -401,6 +403,26 @@ namespace BadMovieClues.UI
             {
                 label.text = completed ? "\u2713 COMPLETED" : "DAILY CHALLENGE";
             }
+        }
+
+        private void OnFreeCoinsAdClicked(Button btn)
+        {
+            if (btn == null) return;
+            var app = AppRoot.Instance;
+            btn.interactable = false;
+            var label = btn.GetComponentInChildren<TextMeshProUGUI>();
+            var originalText = label != null ? label.text : "FREE COINS (AD)";
+            if (label != null) label.text = "WATCHING AD...";
+
+            app.AdService.ShowRewardedAd(success =>
+            {
+                if (btn != null) btn.interactable = true;
+                if (label != null) label.text = originalText;
+                if (success)
+                {
+                    app.Currency.Add(app.Config.RewardedAdCoinReward);
+                }
+            });
         }
 
         private void ShowDailyRewardModal(AppRoot app)
