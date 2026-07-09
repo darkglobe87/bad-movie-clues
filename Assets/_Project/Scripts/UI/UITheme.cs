@@ -162,13 +162,6 @@ namespace BadMovieClues.UI
             image.sprite = sprite;
             image.type = Image.Type.Sliced;
             image.color = CardBackground;
-
-            // Add marquee bulb border
-            var marquee = image.gameObject.GetComponent<MarqueeBulbBorder>();
-            if (marquee == null)
-            {
-                marquee = image.gameObject.AddComponent<MarqueeBulbBorder>();
-            }
         }
 
         /// <summary>Applies card styling: panel sprite with optional interactivity tint.</summary>

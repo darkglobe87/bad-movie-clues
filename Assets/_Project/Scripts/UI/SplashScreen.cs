@@ -47,8 +47,7 @@ namespace BadMovieClues.UI
                 Tween.Scale(spotlightGo.transform, endValue: 1.25f, duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
                 Tween.Color(spotImg, endValue: new Color32(0xFF, 0x4E, 0x8B, 0x05), duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
 
-                // Add chasing marquee border lights around the splash screen edges
-                canvasRoot.gameObject.AddComponent<MarqueeBulbBorder>();
+                // Add chasing marquee border lights around the splash screen edges (removed per user request)
 
                 // Staggered letters title container
                 var titleContainer = new GameObject("TitleContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
