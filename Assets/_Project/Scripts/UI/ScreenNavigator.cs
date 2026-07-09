@@ -21,7 +21,8 @@ namespace BadMovieClues.UI
     {
         public static ScreenNavigator Instance { get; private set; }
 
-        private const float FadeDuration = 0.35f;
+        private RectTransform _leftCurtain;
+        private RectTransform _rightCurtain;
         private CanvasGroup _fadeGroup;
 
         private void Awake()
@@ -32,25 +33,70 @@ namespace BadMovieClues.UI
 
         private void BuildFadeCanvas()
         {
-            var canvasGo = new GameObject("FadeCanvas", typeof(Canvas), typeof(CanvasGroup), typeof(Image));
+            var canvasGo = new GameObject("FadeCanvas", typeof(Canvas), typeof(CanvasGroup));
             canvasGo.transform.SetParent(transform, false);
 
             var canvas = canvasGo.GetComponent<Canvas>();
             canvas.renderMode = RenderMode.ScreenSpaceOverlay;
             canvas.sortingOrder = 1000;
 
-            var image = canvasGo.GetComponent<Image>();
-            // Use B-movie dark top color for a styled transition
-            image.color = new Color32(0x1A, 0x0E, 0x2E, 0xFF);
-            var rt = (RectTransform)canvasGo.transform;
-            rt.anchorMin = Vector2.zero;
-            rt.anchorMax = Vector2.one;
-            rt.offsetMin = Vector2.zero;
-            rt.offsetMax = Vector2.zero;
-
             _fadeGroup = canvasGo.GetComponent<CanvasGroup>();
             _fadeGroup.alpha = 0f;
             _fadeGroup.blocksRaycasts = false;
+
+            var fadeRt = (RectTransform)canvasGo.transform;
+            fadeRt.anchorMin = Vector2.zero;
+            fadeRt.anchorMax = Vector2.one;
+            fadeRt.offsetMin = Vector2.zero;
+            fadeRt.offsetMax = Vector2.zero;
+
+            // Left Curtain (Pivot on the right edge so it slides left/right from center)
+            var leftGo = new GameObject("LeftCurtain", typeof(RectTransform), typeof(Image));
+            leftGo.transform.SetParent(canvasGo.transform, false);
+            _leftCurtain = (RectTransform)leftGo.transform;
+            _leftCurtain.anchorMin = new Vector2(0f, 0f);
+            _leftCurtain.anchorMax = new Vector2(0.5f, 1f);
+            _leftCurtain.pivot = new Vector2(1f, 0.5f);
+            _leftCurtain.offsetMin = _leftCurtain.offsetMax = Vector2.zero;
+            
+            var leftImg = leftGo.GetComponent<Image>();
+            leftImg.sprite = ProceduralIcons.RoundedRect;
+            leftImg.type = Image.Type.Sliced;
+            leftImg.color = new Color32(0x80, 0x10, 0x20, 0xFF); // Velvet Red
+
+            // Right Curtain (Pivot on the left edge so it slides left/right from center)
+            var rightGo = new GameObject("RightCurtain", typeof(RectTransform), typeof(Image));
+            rightGo.transform.SetParent(canvasGo.transform, false);
+            _rightCurtain = (RectTransform)rightGo.transform;
+            _rightCurtain.anchorMin = new Vector2(0.5f, 0f);
+            _rightCurtain.anchorMax = new Vector2(1f, 1f);
+            _rightCurtain.pivot = new Vector2(0f, 0.5f);
+            _rightCurtain.offsetMin = _rightCurtain.offsetMax = Vector2.zero;
+            
+            var rightImg = rightGo.GetComponent<Image>();
+            rightImg.sprite = ProceduralIcons.RoundedRect;
+            rightImg.type = Image.Type.Sliced;
+            rightImg.color = new Color32(0x80, 0x10, 0x20, 0xFF); // Velvet Red
+
+            // Gold border trims
+            AddGoldTrim(leftGo.transform, true);
+            AddGoldTrim(rightGo.transform, false);
+        }
+
+        private void AddGoldTrim(Transform parent, bool isLeft)
+        {
+            var trimGo = new GameObject("GoldTrim", typeof(RectTransform), typeof(Image));
+            trimGo.transform.SetParent(parent, false);
+            var trimRt = (RectTransform)trimGo.transform;
+            trimRt.anchorMin = isLeft ? new Vector2(1f, 0f) : new Vector2(0f, 0f);
+            trimRt.anchorMax = isLeft ? new Vector2(1f, 1f) : new Vector2(0f, 1f);
+            trimRt.pivot = isLeft ? new Vector2(1f, 0.5f) : new Vector2(0f, 0.5f);
+            trimRt.sizeDelta = new Vector2(8f, 0f);
+            trimRt.offsetMin = new Vector2(trimRt.offsetMin.x, 0f);
+            trimRt.offsetMax = new Vector2(trimRt.offsetMax.x, 0f);
+            
+            var img = trimGo.GetComponent<Image>();
+            img.color = new Color32(0xFF, 0xC2, 0x4B, 0xFF); // Marquee Gold
         }
 
         public async Awaitable LoadScene(string sceneName)
@@ -66,27 +112,20 @@ namespace BadMovieClues.UI
                 var rect = rt.rect;
                 var screenWidth = rect.width;
                 if (screenWidth <= 0) screenWidth = Screen.width; // Fallback
+                var halfWidth = screenWidth * 0.5f;
 
                 _fadeGroup.blocksRaycasts = true;
+                _fadeGroup.alpha = 1f;
 
-                if (transition == TransitionType.Fade)
-                {
-                    rt.anchoredPosition = Vector2.zero;
-                    _fadeGroup.alpha = 0f;
-                    await Tween.Alpha(_fadeGroup, endValue: 1f, duration: FadeDuration);
-                }
-                else if (transition == TransitionType.SlideLeft)
-                {
-                    _fadeGroup.alpha = 1f;
-                    rt.anchoredPosition = new Vector2(screenWidth, 0f);
-                    await Tween.UIAnchoredPosition(rt, endValue: Vector2.zero, duration: FadeDuration, ease: Ease.OutQuad);
-                }
-                else if (transition == TransitionType.SlideRight)
-                {
-                    _fadeGroup.alpha = 1f;
-                    rt.anchoredPosition = new Vector2(-screenWidth, 0f);
-                    await Tween.UIAnchoredPosition(rt, endValue: Vector2.zero, duration: FadeDuration, ease: Ease.OutQuad);
-                }
+                // Close the curtains: slide from offscreen sides to the center
+                _leftCurtain.anchoredPosition = new Vector2(-halfWidth, 0f);
+                _rightCurtain.anchoredPosition = new Vector2(halfWidth, 0f);
+
+                var closeSequence = Sequence.Create()
+                    .Group(Tween.UIAnchoredPosition(_leftCurtain, endValue: Vector2.zero, duration: 0.35f, ease: Ease.OutQuad))
+                    .Group(Tween.UIAnchoredPosition(_rightCurtain, endValue: Vector2.zero, duration: 0.35f, ease: Ease.OutQuad));
+
+                await closeSequence;
 
                 var operation = SceneManager.LoadSceneAsync(sceneName);
                 while (operation != null && !operation.isDone)
@@ -97,22 +136,15 @@ namespace BadMovieClues.UI
                 // Wait one frame to avoid visual pop during scene initialization
                 await Awaitable.NextFrameAsync();
 
-                if (transition == TransitionType.Fade)
-                {
-                    await Tween.Alpha(_fadeGroup, endValue: 0f, duration: FadeDuration);
-                }
-                else if (transition == TransitionType.SlideLeft)
-                {
-                    await Tween.UIAnchoredPosition(rt, endValue: new Vector2(-screenWidth, 0f), duration: FadeDuration, ease: Ease.InQuad);
-                }
-                else if (transition == TransitionType.SlideRight)
-                {
-                    await Tween.UIAnchoredPosition(rt, endValue: new Vector2(screenWidth, 0f), duration: FadeDuration, ease: Ease.InQuad);
-                }
+                // Open the curtains: slide back offscreen
+                var openSequence = Sequence.Create()
+                    .Group(Tween.UIAnchoredPosition(_leftCurtain, endValue: new Vector2(-halfWidth, 0f), duration: 0.35f, ease: Ease.InQuad))
+                    .Group(Tween.UIAnchoredPosition(_rightCurtain, endValue: new Vector2(halfWidth, 0f), duration: 0.35f, ease: Ease.InQuad));
+
+                await openSequence;
 
                 _fadeGroup.blocksRaycasts = false;
                 _fadeGroup.alpha = 0f;
-                rt.anchoredPosition = Vector2.zero;
             }
             catch (Exception e)
             {

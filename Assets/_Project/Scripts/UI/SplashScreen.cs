@@ -31,6 +31,25 @@ namespace BadMovieClues.UI
                 tapTarget.raycastTarget = true;
                 MainMenuScreen.StretchFull(canvasRoot);
 
+                // Pulsing spotlight background glow behind title
+                var spotlightGo = new GameObject("Spotlight", typeof(RectTransform), typeof(Image));
+                spotlightGo.transform.SetParent(canvasRoot, false);
+                var spotRt = (RectTransform)spotlightGo.transform;
+                spotRt.anchorMin = new Vector2(0.5f, 0.5f);
+                spotRt.anchorMax = new Vector2(0.5f, 0.5f);
+                spotRt.sizeDelta = new Vector2(500f, 500f);
+                spotRt.anchoredPosition = new Vector2(0f, 50f);
+                
+                var spotImg = spotlightGo.GetComponent<Image>();
+                spotImg.sprite = ProceduralIcons.RoundedRect;
+                spotImg.color = new Color32(0xFF, 0x4E, 0x8B, 0x1A); // Soft AccentMagenta glow
+                
+                Tween.Scale(spotlightGo.transform, endValue: 1.25f, duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
+                Tween.Color(spotImg, endValue: new Color32(0xFF, 0x4E, 0x8B, 0x05), duration: 2.5f, cycles: -1, cycleMode: CycleMode.Yoyo, ease: Ease.InOutSine);
+
+                // Add chasing marquee border lights around the splash screen edges
+                canvasRoot.gameObject.AddComponent<MarqueeBulbBorder>();
+
                 // Staggered letters title container
                 var titleContainer = new GameObject("TitleContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
                 titleContainer.transform.SetParent(canvasRoot, false);
@@ -60,6 +79,9 @@ namespace BadMovieClues.UI
                     // Add subtle dark outline for pop
                     letterText.outlineWidth = 0.2f;
                     letterText.outlineColor = theme != null ? theme.BackgroundTop : new Color32(0x2A, 0x1A, 0x3E, 0xFF);
+                    
+                    // Add neon flickering effect to each letter
+                    letterText.gameObject.AddComponent<NeonMarquee>();
                     
                     letterText.transform.localScale = Vector3.zero;
                     letterGos[i] = letterText.gameObject;

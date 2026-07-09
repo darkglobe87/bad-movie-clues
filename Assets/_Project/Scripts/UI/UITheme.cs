@@ -136,6 +136,13 @@ namespace BadMovieClues.UI
                 text.outlineWidth = 0.15f;
                 if (BodyFont != null) text.font = BodyFont;
             }
+
+            // Add tactile feedback component
+            var tactile = button.gameObject.GetComponent<TactileButton>();
+            if (tactile == null)
+            {
+                tactile = button.gameObject.AddComponent<TactileButton>();
+            }
         }
 
         /// <summary>Applies the tile sprite/color to a keyboard key or blanks-row tile background.</summary>
@@ -156,6 +163,13 @@ namespace BadMovieClues.UI
             image.sprite = sprite;
             image.type = Image.Type.Sliced;
             image.color = CardBackground;
+
+            // Add marquee bulb border
+            var marquee = image.gameObject.GetComponent<MarqueeBulbBorder>();
+            if (marquee == null)
+            {
+                marquee = image.gameObject.AddComponent<MarqueeBulbBorder>();
+            }
         }
 
         /// <summary>Applies card styling: panel sprite with optional interactivity tint.</summary>
@@ -174,6 +188,13 @@ namespace BadMovieClues.UI
             text.fontSize = fontSize;
             text.fontStyle = FontStyles.Bold;
             text.color = NeutralLight;
+
+            // Add neon glow marquee effect
+            var neon = text.gameObject.GetComponent<NeonMarquee>();
+            if (neon == null)
+            {
+                neon = text.gameObject.AddComponent<NeonMarquee>();
+            }
         }
 
         /// <summary>Applies body font, color, and size to a TMP text element.</summary>

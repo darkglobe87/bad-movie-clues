@@ -76,6 +76,12 @@ namespace BadMovieClues.UI
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
             letterHintButton.onClick.AddListener(OnLetterHintClicked);
 
+            if (pictureImage != null)
+            {
+                var tv = pictureImage.gameObject.GetComponent<RetroTVFrame>();
+                if (tv == null) tv = pictureImage.gameObject.AddComponent<RetroTVFrame>();
+            }
+
             if (theme != null)
             {
                 theme.ApplyButton(pictureHintButton, pictureHintButton.GetComponent<Image>());
