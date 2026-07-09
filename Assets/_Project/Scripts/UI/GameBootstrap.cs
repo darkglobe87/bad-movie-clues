@@ -27,7 +27,22 @@ namespace BadMovieClues.UI
                 var app = AppRoot.Instance;
                 var hintService = new HintService(app.Currency, app.Config);
 
-                var controller = new GameController(app.ContentProvider, app.Currency, hintService, app.Config, app.Progress);
+                // Read and clear the daily challenge flag so it doesn't
+                // persist across future navigations back to this scene.
+                var isDaily = app.IsDailyChallenge;
+                app.IsDailyChallenge = false;
+
+                var controller = new GameController(
+                    app.ContentProvider, app.Currency, hintService, app.Config, app.Progress,
+                    isDailyChallenge: isDaily,
+                    dailyRewardMultiplier: app.Config.DailyChallengeRewardMultiplier);
+
+                // If this is a daily challenge, mark it completed when the player wins.
+                if (isDaily)
+                {
+                    controller.Won += () => app.DailyChallenge.MarkCompleted();
+                }
+
                 hud.Bind(controller, app.AudioService);
                 await controller.LoadLevelAsync(app.SelectedLevelIndex);
             }

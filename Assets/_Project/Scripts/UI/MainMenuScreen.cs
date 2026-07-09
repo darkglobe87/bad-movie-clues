@@ -1,4 +1,7 @@
 using System;
+using BadMovieClues.Data;
+using BadMovieClues.Economy;
+using BadMovieClues.Progression;
 using BadMovieClues.Services;
 using PrimeTween;
 using TMPro;
@@ -26,6 +29,10 @@ namespace BadMovieClues.UI
         private SettingsScreen _settingsScreen;
         private LevelSelectScreen _levelSelectScreen;
         private StoreScreen _storeScreen;
+        private LevelCatalog _catalog;
+        private DailyRewardModal _dailyRewardModal;
+        private Button _dailyChallengeButton;
+        private TextMeshProUGUI _streakText;
 
         private async void Start()
         {
@@ -37,6 +44,7 @@ namespace BadMovieClues.UI
                 BuildTitle();
                 BuildButtonPanel();
                 BuildCoinDisplay();
+                BuildStreakBadge();
                 BuildVersionText();
 
                 app.Currency.OnBalanceChanged += OnBalanceChanged;
@@ -63,6 +71,16 @@ namespace BadMovieClues.UI
                 _storeScreen = storeGo.AddComponent<StoreScreen>();
                 _storeScreen.Init(theme, clickSound, app.Purchases, app.Currency, OnPanelClosed);
                 _storeScreen.gameObject.SetActive(false);
+
+                _catalog = catalog;
+
+                // Show daily reward modal if unclaimed
+                if (!app.Retention.HasClaimedToday)
+                {
+                    ShowDailyRewardModal(app);
+                }
+
+                RefreshDailyChallengeButton();
             }
             catch (Exception e)
             {
@@ -148,12 +166,12 @@ namespace BadMovieClues.UI
             var panelGo = new GameObject("ButtonPanel", typeof(RectTransform), typeof(VerticalLayoutGroup));
             panelGo.transform.SetParent(canvasRoot, false);
             _buttonPanel = (RectTransform)panelGo.transform;
-            _buttonPanel.anchorMin = new Vector2(0.25f, 0.35f);
-            _buttonPanel.anchorMax = new Vector2(0.75f, 0.65f);
+            _buttonPanel.anchorMin = new Vector2(0.2f, 0.28f);
+            _buttonPanel.anchorMax = new Vector2(0.8f, 0.68f);
             _buttonPanel.offsetMin = _buttonPanel.offsetMax = Vector2.zero;
 
             var layout = panelGo.GetComponent<VerticalLayoutGroup>();
-            layout.spacing = 16;
+            layout.spacing = 14;
             layout.childAlignment = TextAnchor.MiddleCenter;
             layout.childControlWidth = true;
             layout.childControlHeight = true;
@@ -162,8 +180,28 @@ namespace BadMovieClues.UI
 
             // Slide-in staggered animations
             BuildMenuButton(_buttonPanel, "PLAY", OnPlayClicked, 0.1f);
+            _dailyChallengeButton = BuildMenuButton(_buttonPanel, "DAILY CHALLENGE", OnDailyChallengeClicked, 0.15f);
             BuildMenuButton(_buttonPanel, "STORE", OnStoreClicked, 0.2f);
             BuildMenuButton(_buttonPanel, "SETTINGS", OnSettingsClicked, 0.3f);
+
+            // Apply gold tint to daily challenge button to make it visually distinct
+            if (theme != null && _dailyChallengeButton != null)
+            {
+                var colors = _dailyChallengeButton.colors;
+                colors.normalColor = theme.AccentGold;
+                colors.highlightedColor = new Color(
+                    Mathf.Min(theme.AccentGold.r * 1.15f, 1f),
+                    Mathf.Min(theme.AccentGold.g * 1.15f, 1f),
+                    Mathf.Min(theme.AccentGold.b * 1.15f, 1f),
+                    theme.AccentGold.a);
+                colors.pressedColor = theme.NeutralLight;
+                colors.disabledColor = new Color(theme.AccentGold.r, theme.AccentGold.g, theme.AccentGold.b, 0.5f);
+                _dailyChallengeButton.colors = colors;
+
+                // Dark text for readability on gold background
+                var label = _dailyChallengeButton.GetComponentInChildren<TextMeshProUGUI>();
+                if (label != null) label.color = theme.BackgroundTop;
+            }
         }
 
         private Button BuildMenuButton(Transform parent, string label, Action onClick, float delay, bool interactable = true)
@@ -268,11 +306,45 @@ namespace BadMovieClues.UI
             }
         }
 
+        private void BuildStreakBadge()
+        {
+            var app = AppRoot.Instance;
+            var streakDay = app.Retention.CurrentStreakDay;
+
+            var streakGo = new GameObject("StreakBadge", typeof(RectTransform));
+            streakGo.transform.SetParent(canvasRoot, false);
+            var streakRt = (RectTransform)streakGo.transform;
+            streakRt.anchorMin = new Vector2(0.05f, 0.88f);
+            streakRt.anchorMax = new Vector2(0.4f, 0.96f);
+            streakRt.offsetMin = streakRt.offsetMax = Vector2.zero;
+
+            _streakText = streakGo.AddComponent<TextMeshProUGUI>();
+            _streakText.alignment = TextAlignmentOptions.Left;
+            _streakText.fontSize = 22;
+            _streakText.fontStyle = FontStyles.Bold;
+            if (theme != null)
+            {
+                _streakText.color = theme.AccentGold;
+                if (theme.BodyFont != null) _streakText.font = theme.BodyFont;
+            }
+
+            // Only show streak badge when streak > 1 (showing "Day 1" isn't meaningful)
+            if (streakDay > 1)
+            {
+                _streakText.text = $"\U0001F525 Day {streakDay}";
+            }
+            else
+            {
+                streakGo.SetActive(false);
+            }
+        }
+
         private void OnPlayClicked()
         {
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
             _levelSelectScreen.gameObject.SetActive(true);
             _levelSelectScreen.Refresh();
         }
@@ -282,6 +354,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
             _settingsScreen.gameObject.SetActive(true);
             _settingsScreen.Refresh();
         }
@@ -291,6 +364,7 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(false);
             _buttonPanel.gameObject.SetActive(false);
             if (_coinText != null) _coinText.gameObject.SetActive(false);
+            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(false);
             _storeScreen.gameObject.SetActive(true);
             _storeScreen.Refresh();
         }
@@ -303,7 +377,52 @@ namespace BadMovieClues.UI
             _title.gameObject.SetActive(true);
             _buttonPanel.gameObject.SetActive(true);
             if (_coinText != null) _coinText.gameObject.SetActive(true);
+            if (_streakText != null) _streakText.transform.parent.gameObject.SetActive(true);
             UpdateCoinDisplay();
+            RefreshDailyChallengeButton();
+        }
+
+        private void OnDailyChallengeClicked()
+        {
+            if (_catalog == null) return;
+            var app = AppRoot.Instance;
+            app.IsDailyChallenge = true;
+            app.SelectedLevelIndex = app.DailyChallenge.GetTodaysCatalogIndex(_catalog.Levels.Count);
+            _ = ScreenNavigator.Instance.LoadScene("Gameplay", TransitionType.SlideLeft);
+        }
+
+        private void RefreshDailyChallengeButton()
+        {
+            if (_dailyChallengeButton == null) return;
+            var completed = AppRoot.Instance.DailyChallenge.IsCompletedToday;
+            _dailyChallengeButton.interactable = !completed;
+            var label = _dailyChallengeButton.GetComponentInChildren<TextMeshProUGUI>();
+            if (label != null)
+            {
+                label.text = completed ? "\u2713 COMPLETED" : "DAILY CHALLENGE";
+            }
+        }
+
+        private void ShowDailyRewardModal(AppRoot app)
+        {
+            var modalGo = new GameObject("DailyRewardModal", typeof(RectTransform));
+            modalGo.transform.SetParent(canvasRoot, false);
+            StretchFull((RectTransform)modalGo.transform);
+            _dailyRewardModal = modalGo.AddComponent<DailyRewardModal>();
+            _dailyRewardModal.Init(theme, clickSound, app.Retention, app.Currency, app.Config, () =>
+            {
+                UpdateCoinDisplay();
+                // Refresh streak badge after claiming
+                if (_streakText != null)
+                {
+                    var streakDay = app.Retention.CurrentStreakDay;
+                    if (streakDay > 1)
+                    {
+                        _streakText.text = $"\U0001F525 Day {streakDay}";
+                        _streakText.transform.parent.gameObject.SetActive(true);
+                    }
+                }
+            });
         }
 
         internal static TextMeshProUGUI UIText(Transform parent, string text, float fontSize, TMPro.FontStyles style)

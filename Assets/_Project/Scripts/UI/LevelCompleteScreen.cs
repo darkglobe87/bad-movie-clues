@@ -35,12 +35,12 @@ namespace BadMovieClues.UI
             Build();
         }
 
-        public void ShowWon(string movieTitle, int stars, int coinsEarned, bool isNewBest, Action onNext)
+        public void ShowWon(string movieTitle, int stars, int coinsEarned, bool isNewBest, Action onNext, bool isDaily = false)
         {
             gameObject.SetActive(true);
             ClearButtons();
 
-            _titleText.text = movieTitle;
+            _titleText.text = isDaily ? "Daily Challenge\nComplete!" : movieTitle;
             
             // Pop stars in with a stagger
             for (int i = 0; i < 3; i++)
@@ -61,10 +61,14 @@ namespace BadMovieClues.UI
             }
 
             // Coin count-up animation
+            var coinLabel = isDaily ? $"+{coinsEarned} coins (×3 Daily Bonus!)" : $"+{coinsEarned} coins";
             _coinsText.text = "+0 coins";
             Tween.Custom(startValue: 0f, endValue: coinsEarned, duration: 0.8f, onValueChange: val =>
             {
-                _coinsText.text = $"+{Mathf.RoundToInt(val)} coins";
+                if (isDaily)
+                    _coinsText.text = $"+{Mathf.RoundToInt(val)} coins (\u00d73 Daily Bonus!)";
+                else
+                    _coinsText.text = $"+{Mathf.RoundToInt(val)} coins";
             }, startDelay: 0.4f);
 
             // New best badge
@@ -89,7 +93,12 @@ namespace BadMovieClues.UI
             ConfettiBurst.Play(_dimBackground, 60);
             _audio?.PlayOneShot(_stingSound);
 
-            BuildButton("Next", onNext);
+            // Daily challenges don't have a "Next" button — there's only one per day
+            if (!isDaily)
+            {
+                BuildButton("Next", onNext);
+            }
+            BuildButton("Menu", () => _ = ScreenNavigator.Instance.LoadScene("MainMenu", TransitionType.Fade));
         }
 
         public void ShowLost(string movieTitle, Action onRetry, Action onMenu)

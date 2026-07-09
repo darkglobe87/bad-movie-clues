@@ -29,10 +29,16 @@ namespace BadMovieClues.UI
         public IProgressService Progress { get; private set; }
         public IPurchaseService Purchases { get; private set; }
         public IHapticsService Haptics { get; private set; }
+        public DailyPuzzleService DailyChallenge { get; private set; }
+        public RetentionService Retention { get; private set; }
 
         /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
         /// read by GameBootstrap instead of always loading index 0.</summary>
         public int SelectedLevelIndex { get; set; }
+
+        /// <summary>True when the current Gameplay scene was launched as a
+        /// daily challenge, not a normal level-select pick.</summary>
+        public bool IsDailyChallenge { get; set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -66,6 +72,8 @@ namespace BadMovieClues.UI
             Progress = new ProgressService(SaveService);
             Purchases = new StubPurchaseService(Currency);
             Haptics = new AndroidHapticsService();
+            DailyChallenge = new DailyPuzzleService(SaveService);
+            Retention = new RetentionService(SaveService);
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.

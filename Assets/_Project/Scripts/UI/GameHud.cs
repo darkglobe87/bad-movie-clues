@@ -53,6 +53,7 @@ namespace BadMovieClues.UI
         private bool _characterRevealed;
         private int _previousStars;
         private UIObjectPool<Image> _tilePool;
+        private bool _isDailySession;
 
         public void Bind(GameController controller, IAudioService audioService)
         {
@@ -71,6 +72,13 @@ namespace BadMovieClues.UI
             _levelCompleteScreen = completeGo.AddComponent<LevelCompleteScreen>();
             _levelCompleteScreen.Init(theme, clickSound, _audioService);
             _levelCompleteScreen.gameObject.SetActive(false);
+
+            // Show "DAILY CHALLENGE" banner if this session is a daily
+            if (AppRoot.Instance.IsDailyChallenge || _isDailySession)
+            {
+                _isDailySession = true;
+                BuildDailyBanner();
+            }
 
             pictureHintButton.onClick.AddListener(OnPictureHintClicked);
             characterHintButton.onClick.AddListener(OnCharacterHintClicked);
@@ -276,7 +284,10 @@ namespace BadMovieClues.UI
 
             bool isNewBest = _controller.StarsEarned > _previousStars;
             _levelCompleteScreen.ShowWon(_controller.CurrentLevel.MovieTitle, _controller.StarsEarned,
-                _controller.Config.LevelCompleteReward, isNewBest, OnNextClicked);
+                _isDailySession
+                    ? _controller.Config.LevelCompleteReward * _controller.Config.DailyChallengeRewardMultiplier
+                    : _controller.Config.LevelCompleteReward,
+                isNewBest, OnNextClicked, _isDailySession);
         }
 
         private void OnLost()
@@ -484,6 +495,34 @@ namespace BadMovieClues.UI
         {
             target.localScale = Vector3.zero;
             Tween.Scale(target, endValue: 1f, duration: PopDuration, ease: Ease.OutElastic, startDelay: delay);
+        }
+
+        private void BuildDailyBanner()
+        {
+            var bannerGo = new GameObject("DailyBanner", typeof(RectTransform), typeof(Image));
+            bannerGo.transform.SetParent(canvasRoot, false);
+            var bannerRt = (RectTransform)bannerGo.transform;
+            bannerRt.anchorMin = new Vector2(0.2f, 0.94f);
+            bannerRt.anchorMax = new Vector2(0.8f, 0.99f);
+            bannerRt.offsetMin = bannerRt.offsetMax = Vector2.zero;
+
+            var bannerImage = bannerGo.GetComponent<Image>();
+            bannerImage.sprite = ProceduralIcons.RoundedRect;
+            bannerImage.type = Image.Type.Sliced;
+            bannerImage.color = theme != null ? theme.AccentGold : Color.yellow;
+
+            var bannerLabel = MainMenuScreen.UIText(bannerGo.transform, "DAILY CHALLENGE", 16, FontStyles.Bold);
+            MainMenuScreen.StretchFull(bannerLabel.rectTransform);
+            if (theme != null)
+            {
+                bannerLabel.color = theme.BackgroundTop;
+                if (theme.BodyFont != null) bannerLabel.font = theme.BodyFont;
+            }
+
+            // Slide in from top
+            var startPos = bannerRt.anchoredPosition + new Vector2(0, 60f);
+            bannerRt.anchoredPosition = startPos;
+            Tween.UIAnchoredPosition(bannerRt, endValue: startPos - new Vector2(0, 60f), duration: 0.4f, ease: Ease.OutBack);
         }
     }
 }

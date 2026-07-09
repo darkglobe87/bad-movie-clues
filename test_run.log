@@ -1,0 +1,543 @@
+[Licensing::Module] Trying to connect to existing licensing client channel...
+Built from '6000.3/staging' branch; Version is '6000.3.19f1 (7689f4515d75) revision 7768564'; Using compiler version '194234433'; Build Type 'Release'
+OS: 'Windows 11  (10.0.26200) Core' Language: 'en' Physical Memory: 3503 MB
+BatchMode: 1, IsHumanControllingUs: 0, StartBugReporterOnCrash: 0, Is64bit: 1
+System  architecture: x64
+Process architecture: x64
+Date: 2026-07-09T11:04:25Z
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-matth" at "2026-07-09T11:04:25.352038Z"
+
+COMMAND LINE ARGUMENTS:
+C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Unity.exe
+-batchmode
+-runTests
+-testPlatform
+EditMode
+-projectPath
+C:\mattscripts\badmovieclues
+-logFile
+C:\mattscripts\badmovieclues\test_run.log
+Successfully changed project path to: C:\mattscripts\badmovieclues
+C:/mattscripts/badmovieclues
+[UnityMemory] Configuration Parameters - Can be set up in boot.config
+    "memorysetup-temp-allocator-size-nav-mesh-worker=65536"
+    "memorysetup-temp-allocator-size-audio-worker=65536"
+    "memorysetup-temp-allocator-size-gfx=262144"
+    "memorysetup-allocator-temp-initial-block-size-main=262144"
+    "memorysetup-allocator-temp-initial-block-size-worker=262144"
+    "memorysetup-temp-allocator-size-background-worker=32768"
+    "memorysetup-temp-allocator-size-job-worker=262144"
+    "memorysetup-temp-allocator-size-preload-manager=33554432"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-temp-allocator-size-gi-baking-worker=262144"
+    "memorysetup-bucket-allocator-granularity=16"
+    "memorysetup-bucket-allocator-bucket-count=8"
+    "memorysetup-bucket-allocator-block-size=33554432"
+    "memorysetup-bucket-allocator-block-count=8"
+    "memorysetup-main-allocator-block-size=16777216"
+    "memorysetup-thread-allocator-block-size=16777216"
+    "memorysetup-gfx-main-allocator-block-size=16777216"
+    "memorysetup-gfx-thread-allocator-block-size=16777216"
+    "memorysetup-cache-allocator-block-size=4194304"
+    "memorysetup-typetree-allocator-block-size=2097152"
+    "memorysetup-profiler-bucket-allocator-granularity=16"
+    "memorysetup-profiler-bucket-allocator-bucket-count=8"
+    "memorysetup-profiler-bucket-allocator-block-size=33554432"
+    "memorysetup-profiler-bucket-allocator-block-count=8"
+    "memorysetup-profiler-allocator-block-size=16777216"
+    "memorysetup-profiler-editor-allocator-block-size=1048576"
+    "memorysetup-temp-allocator-size-main=16777216"
+    "memorysetup-job-temp-allocator-block-size=2097152"
+    "memorysetup-job-temp-allocator-block-size-background=1048576"
+    "memorysetup-job-temp-allocator-reduction-small-platforms=262144"
+    "memorysetup-temp-allocator-size-cloud-worker=32768"
+Player connection [2736]  Target information:
+
+Player connection [2736]  * "[IP] 192.168.1.104 [Port] 55504 [Flags] 2 [Guid] 3580954563 [EditorId] 3580954563 [Version] 1048832 [Id] WindowsEditor(7,LAPTOP-16BMVIJE) [Debug] 1 [PackageName] WindowsEditor [ProjectName] Editor" 
+
+Player connection [2736] Host joined multi-casting on [225.0.0.222:54997]...
+Player connection [2736] Host joined alternative multi-casting on [225.0.0.222:34997]...
+Input System module state changed to: Initialized.
+[Physics::Module] Initialized fallback backend.
+[Physics::Module] Id: 0xdecafbad
+[Package Manager] Connected to IPC stream "Upm-4960" after 1.3 seconds.
+[Licensing::Module] Licensing is not yet initialized.
+[Licensing::Client] Error: HandshakeResponse reported an error:
+	ResponseCode: 505
+	ResponseStatus: Unsupported protocol version '1.18.1'.
+[Licensing::Module] Error: Failed to handshake to channel: "LicenseClient-matth"
+[Licensing::IpcConnector] LicenseClient-matth channel disconnected successfully.
+[Licensing::IpcConnector] Channel LicenseClient-matth-6000.3.19 doesn't exist
+[Licensing::Module] Successfully launched the LicensingClient (PId: 10416)
+Starting IPC server.
+Waiting for clients to connect on \\.\pipe\Unity-LicenseClient-matth-6000.3.19, press Ctrl-C to exit.
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-matth-6000.3.19" at "2026-07-09T11:04:47.5539429Z"
+[Licensing::Client] Code 10 while verifying Licensing Client signature (process Id: 10416, path: "C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/Resources/Licensing/Client/Unity.Licensing.Client.exe")
+[Licensing::Module] LicensingClient has failed validation; ignoring
+[Licensing::Client] Handshaking with LicensingClient:
+  Version:                 1.18.1+9fbee8e
+  Session Id:              4095b6bdf25e43d5a3ad4455af1fa374
+  Correlation Id:          57d8895b9ca161972238c86b99822745
+  External correlation Id: 1290842715850031990
+  Machine Id:              E07FWJjW8HKPk2URCTqfng+fDHI=
+[Licensing::Module] Successfully connected to LicensingClient on channel: "LicenseClient-matth-6000.3.19" (connect: 15.48s, validation: 0.81s, handshake: 0.07s)
+[Licensing::IpcConnector] Successfully connected to: "LicenseClient-matth-6000.3.19-notifications" at "2026-07-09T11:04:48.4384504Z"
+[Licensing::Module] Connected to LicensingClient (PId: 10416, launch time: 0.13, total connection time: 16.37s)
+[Licensing::Module] Error: Access token is unavailable; failed to update
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Module] License group:
+  Id: 5774077638088-UnityPersXXXX
+  Product: Unity Personal
+  Type: Assigned
+  Expiration: Unlimited
+[Licensing::Client] Successfully updated license, isAsync: True, time: 0.06
+[Licensing::Module] Licensing Background thread has ended after 23.27s
+[Licensing::Module] Licensing is initialized (took 17.59s).
+[Licensing::Client] Successfully resolved entitlement details
+Library Redirect Path: Library/
+[Physics::Module] Selected backend.
+[Physics::Module] Name: PhysX
+[Physics::Module] Id: 0xf2b8ea05
+[Physics::Module] SDK Version: 4.1.2
+[Physics::Module] Integration Version: 1.0.0
+[Physics::Module] Threading Mode: Multi-Threaded
+[Licensing::Client] Successfully resolved entitlement details
+Refreshing native plugins compatible for Editor in 0.01 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Initialize engine version: 6000.3.19f1 (7689f4515d75)
+[Subsystems] Discovering subsystems at path C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/Resources/UnitySubsystems
+[Subsystems] Discovering subsystems at path C:/mattscripts/badmovieclues/Assets
+GfxDevice: creating device client; kGfxThreadingModeNonThreaded
+d3d12: failed to query info queue interface (0x80004002).
+Direct3D:
+    Version:         Direct3D 12 [level 12.1]
+    Renderer:        AMD Radeon(TM) Graphics (ID=0x15d8)
+    Vendor:          ATI
+    VRAM:            1751 MB
+    App VRAM Budget: 2025 MB
+    Driver:          31.0.21924.61
+    Unified Memory Architecture
+Initialize mono
+Mono path[0] = 'C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/Managed'
+Mono path[1] = 'C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/MonoBleedingEdge/lib/mono/unityjit-win32'
+Mono config path = 'C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/MonoBleedingEdge/etc'
+Using monoOptions --debugger-agent=transport=dt_socket,embedding=1,server=y,suspend=n,address=127.0.0.1:56960
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+Using cacheserver namespaces - metadata:defaultmetadata, artifacts:defaultartifacts
+ImportWorker Server TCP listen port: 0
+AcceleratorClientConnectionCallback - disconnected - :0
+Begin MonoManager ReloadAssembly
+Registering precompiled unity dll's ...
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/PlaybackEngines/WindowsStandaloneSupport/UnityEditor.WindowsStandalone.Extensions.dll
+Register platform support module: C:/Program Files/Unity/Hub/Editor/6000.3.19f1/Editor/Data/PlaybackEngines/AndroidPlayer/UnityEditor.Android.Extensions.dll
+Registered in 1.592523 seconds.
+- Loaded All Assemblies, in 38.578 seconds
+Native extension for Android target not found
+Native extension for WindowsStandalone target not found
+Package Manager log level set to [2]
+ScheduleIndexationOnStartup MainProcess:False IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  2.692 seconds
+Domain Reload Profiling: 41264ms
+	BeginReloadAssembly (29516ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (0ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (49ms)
+	RebuildCommonClasses (1715ms)
+	RebuildNativeTypeToScriptingClass (39ms)
+	initialDomainReloadingComplete (1788ms)
+	LoadAllAssembliesAndSetupDomain (5509ms)
+		LoadAssemblies (29474ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (5472ms)
+			TypeCache.Refresh (5462ms)
+				TypeCache.ScanAssembly (4481ms)
+			BuildScriptInfoCaches (1ms)
+			ResolveRequiredComponents (5ms)
+	FinalizeReload (2697ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (2481ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (214ms)
+			SetLoadedEditorAssemblies (10ms)
+			BeforeProcessingInitializeOnLoad (299ms)
+			ProcessInitializeOnLoadAttributes (581ms)
+			ProcessInitializeOnLoadMethodAttributes (1374ms)
+			AfterProcessingInitializeOnLoad (0ms)
+			EditorAssembliesLoaded (2ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (0ms)
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Client] Successfully resolved entitlement details
+Application.AssetDatabase Initial Refresh Start
+[Package Manager] Restoring resolved packages state from cache
+[Licensing::Client] Successfully resolved entitlement details
+[Package Manager] Registered 45 packages:
+  Packages from [https://packages.unity.com]:
+    com.unity.addressables@3.1.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.addressables@9bffe1a216ce)
+    com.unity.nuget.newtonsoft-json@3.2.2 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.nuget.newtonsoft-json@4dfd81071c64)
+    com.unity.profiling.core@1.0.3 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.profiling.core@8a49f7027d06)
+    com.unity.scriptablebuildpipeline@3.1.1 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.scriptablebuildpipeline@ea93f1084040)
+  Packages from [https://registry.npmjs.org]:
+    com.kyrylokuzyk.primetween@1.4.8 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.kyrylokuzyk.primetween@d86bb6572edd)
+  Built-in packages:
+    com.unity.multiplayer.center@1.0.1 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.multiplayer.center@f01f4ba8d00a)
+    com.unity.test-framework@1.6.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.test-framework@bd7f943e9647)
+    com.unity.ugui@2.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.ugui@b95364aab964)
+    com.unity.modules.accessibility@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.accessibility)
+    com.unity.modules.adaptiveperformance@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.adaptiveperformance)
+    com.unity.modules.ai@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.ai)
+    com.unity.modules.androidjni@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.androidjni)
+    com.unity.modules.animation@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.animation)
+    com.unity.modules.assetbundle@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.assetbundle)
+    com.unity.modules.audio@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.audio)
+    com.unity.modules.cloth@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.cloth)
+    com.unity.modules.director@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.director)
+    com.unity.modules.imageconversion@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.imageconversion)
+    com.unity.modules.imgui@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.imgui)
+    com.unity.modules.jsonserialize@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.jsonserialize)
+    com.unity.modules.particlesystem@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.particlesystem)
+    com.unity.modules.physics@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.physics)
+    com.unity.modules.physics2d@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.physics2d)
+    com.unity.modules.screencapture@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.screencapture)
+    com.unity.modules.terrain@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.terrain)
+    com.unity.modules.terrainphysics@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.terrainphysics)
+    com.unity.modules.tilemap@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.tilemap)
+    com.unity.modules.ui@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.ui)
+    com.unity.modules.uielements@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.uielements)
+    com.unity.modules.umbra@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.umbra)
+    com.unity.modules.unityanalytics@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unityanalytics)
+    com.unity.modules.unitywebrequest@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unitywebrequest)
+    com.unity.modules.unitywebrequestassetbundle@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unitywebrequestassetbundle)
+    com.unity.modules.unitywebrequestaudio@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unitywebrequestaudio)
+    com.unity.modules.unitywebrequesttexture@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unitywebrequesttexture)
+    com.unity.modules.unitywebrequestwww@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.unitywebrequestwww)
+    com.unity.modules.vectorgraphics@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.vectorgraphics)
+    com.unity.modules.vehicles@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.vehicles)
+    com.unity.modules.video@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.video)
+    com.unity.modules.vr@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.vr)
+    com.unity.modules.wind@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.wind)
+    com.unity.modules.xr@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.xr)
+    com.unity.modules.subsystems@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.subsystems)
+    com.unity.modules.hierarchycore@1.0.0 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.modules.hierarchycore)
+    com.unity.ext.nunit@2.0.5 (location: C:\mattscripts\badmovieclues\Library\PackageCache\com.unity.ext.nunit@d8c07649098d)
+[Subsystems] No new subsystems found in resolved package list.
+[Package Manager] Done registering packages in 0.13 seconds
+[ScriptCompilation] Requested script compilation because: Assembly Definition File(s) changed
+[ScriptCompilation] Requested script compilation because: Assetdatabase observed changes in script compilation related files
+info: Microsoft.Hosting.Lifetime[14]
+      Now listening on: http://localhost:80
+info: Microsoft.Hosting.Lifetime[0]
+      Application started. Press Ctrl+C to shut down.
+info: Microsoft.Hosting.Lifetime[0]
+      Hosting environment: Production
+info: Microsoft.Hosting.Lifetime[0]
+      Content root path: C:\mattscripts\badmovieclues\
+info: Microsoft.AspNetCore.Hosting.Diagnostics[1]
+      Request starting HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc -
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[0]
+      Executing endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Routing.EndpointMiddleware[1]
+      Executed endpoint 'gRPC - /UnityILPP.PostProcessing/Ping'
+info: Microsoft.AspNetCore.Hosting.Diagnostics[2]
+      Request finished HTTP/2 POST http://ilpp/UnityILPP.PostProcessing/Ping application/grpc - - 200 - application/grpc 254.6373ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1300b0aE.dag" --continue-on-failure --profile="Library/Bee/backend1.traceevents" ScriptAssemblies
+WorkingDir: C:/mattscripts/badmovieclues
+DisplayProgressbar: Compiling Scripts
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\netcorerun\netcorerun.exe "C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\Tools\BuildPipeline\ScriptCompilationBuildProgram.exe" "Library/Bee/1300b0aE.dag.json" "Library/Bee/1300b0aE-inputdata.json" "Library\Bee\buildprogram0.traceevents"
+WorkingDir: C:/mattscripts/badmovieclues
+ExitCode: 4 Duration: 1s726ms
+Rebuilding DAG because FileSignature timestamp changed: Library/Bee/1300b0aE-inputdata.json
+*** Tundra requires additional run (1.41 seconds), 0 items updated, 12 evaluated
+ExitCode: 0 Duration: 4s778ms
+Starting: C:\Program Files\Unity\Hub\Editor\6000.3.19f1\Editor\Data\Tools\BuildPipeline\bee_backend.exe --ipc --defer-dag-verification --dagfile="Library/Bee/1300b0aE.dag" --continue-on-failure --dagfilejson="Library\Bee\1300b0aE.dag.json" --profile="Library/Bee/backend2.traceevents" ScriptAssemblies
+WorkingDir: C:/mattscripts/badmovieclues
+Assets\_Project\Scripts\UI\SplashScreen.cs(47,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+Assets\_Project\Scripts\UI\SplashScreen.cs(48,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+ExitCode: 0 Duration: 22s
+Finished compiling graph: 402 nodes, 5572 flattened edges (5120 ToBuild, 60 ToUse), maximum node priority 244
+[201/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Services.rsp
+[222/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Progression.rsp
+[250/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.UI.rsp
+[258/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Editor.dll.mvfrm.rsp
+[260/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Editor.rsp
+[262/399    0s] WriteText Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Tests.rsp
+[BUSY       6s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Services.dll (+2 others)
+[312/399    8s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Data.dll (+2 others)
+[325/399    8s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Services.dll (+2 others)
+[330/399    1s] MovedFromExtractor-Combine Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Editor.dll.mvfrm
+[331/399    1s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Economy.dll (+2 others)
+[345/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Economy.dll
+[347/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Services.dll
+[351/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Data.dll
+[356/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Economy.pdb
+[357/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Services.pdb
+[368/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Data.pdb
+[381/399    0s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Progression.dll (+2 others)
+[382/399    1s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Core.dll (+2 others)
+[383/399    1s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.UI.dll (+2 others)
+Assets\_Project\Scripts\UI\SplashScreen.cs(47,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+
+Assets\_Project\Scripts\UI\SplashScreen.cs(48,17): warning CS4014: Because this call is not awaited, execution of the current method continues before the call is completed. Consider applying the 'await' operator to the result of the call.
+[BUSY       8s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Tests.dll (+2 others)
+[384/399    7s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Editor.dll (+2 others)
+[385/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.UI.dll
+[386/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Core.dll
+[387/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Progression.dll
+[388/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Editor.pdb
+[389/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Editor.dll
+[390/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.UI.pdb
+[391/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Core.pdb
+[392/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Progression.pdb
+[393/399   10s] Csc Library/Bee/artifacts/1300b0aE.dag/BadMovieClues.Tests.dll (+2 others)
+[394/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Tests.pdb
+[395/399    0s] CopyFiles Library/ScriptAssemblies/BadMovieClues.Tests.dll
+[396/399    1s] Csc Library/Bee/artifacts/1300b0aE.dag/Assembly-CSharp-Editor.dll (+2 others)
+[397/399    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.pdb
+[398/399    0s] CopyFiles Library/ScriptAssemblies/Assembly-CSharp-Editor.dll
+*** Tundra build success (22.52 seconds), 34 items updated, 399 evaluated
+AssetDatabase: script compilation time: 33.226036s
+Begin MonoManager ReloadAssembly
+[Licensing::Client] Successfully resolved entitlement details
+Symbol file LoadedFromMemory is not a mono symbol file
+- Loaded All Assemblies, in 21.111 seconds
+Start importing Assets/_Project/Content/Resources/Audio using Guid(f667fcb89b890944497b647d75727d0c) (DefaultImporter) -> (artifact id: 'e0677974f1298eaacee8a617bd3c6b05') in 0.2444541 seconds
+Start importing Assets/_Project/Content/UI/Kenney using Guid(69f349323b9b1fa4281318466dda8983) (DefaultImporter) -> (artifact id: '0bc6ee637162e4c8a0e8373c9cad2a0e') in 0.1288884 seconds
+Start importing Assets/_Project/Content/Resources/Images using Guid(cb57939fade427f4787b7b1af722027c) (DefaultImporter) -> (artifact id: '5681793f3e6d3da6e486590c53aca831') in 0.0642165 seconds
+Start importing Assets/_Project/Scripts/Editor/BadMovieClues.Editor.asmdef using Guid(25e5867b8aa34964f936d57010f284b6) (AssemblyDefinitionImporter) -> (artifact id: '9619790e1eb94cba5bd179de4955554f') in 0.0668727 seconds
+Refreshing native plugins compatible for Editor in 0.00 ms, found 0 plugins.
+Native extension for Android target not found
+Native extension for WindowsStandalone target not found
+ScheduleIndexationOnStartup MainProcess:True IndexOnStartup:True
+Mono: successfully reloaded assembly
+- Finished resetting the current domain, in  4.379 seconds
+Domain Reload Profiling: 25378ms
+	BeginReloadAssembly (1174ms)
+		ExecutionOrderSort (0ms)
+		DisableScriptedObjects (180ms)
+		BackupInstance (0ms)
+		ReleaseScriptingObjects (0ms)
+		CreateAndSetChildDomain (283ms)
+	RebuildCommonClasses (105ms)
+	RebuildNativeTypeToScriptingClass (33ms)
+	initialDomainReloadingComplete (95ms)
+	LoadAllAssembliesAndSetupDomain (19591ms)
+		LoadAssemblies (16707ms)
+		RebuildTransferFunctionScriptingTraits (0ms)
+		AnalyzeDomain (3239ms)
+			TypeCache.Refresh (3141ms)
+				TypeCache.ScanAssembly (3087ms)
+			BuildScriptInfoCaches (79ms)
+			ResolveRequiredComponents (13ms)
+	FinalizeReload (4380ms)
+		ReleaseScriptCaches (0ms)
+		RebuildScriptCaches (0ms)
+		SetupLoadedEditorAssemblies (3633ms)
+			LogAssemblyErrors (0ms)
+			InitializePlatformSupportModulesInManaged (320ms)
+			SetLoadedEditorAssemblies (13ms)
+			BeforeProcessingInitializeOnLoad (763ms)
+			ProcessInitializeOnLoadAttributes (2239ms)
+			ProcessInitializeOnLoadMethodAttributes (278ms)
+			AfterProcessingInitializeOnLoad (20ms)
+			EditorAssembliesLoaded (1ms)
+		ExecutionOrderSort2 (0ms)
+		AwakeInstancesAfterBackupRestoration (78ms)
+Start importing Assets/_Project/Content/UI/Kenney/barHorizontal_white.png using Guid(a2e6d81f02e604c4f86c2cd83837c8bc) (TextureImporter) -> (artifact id: '6af003dff50a5474513bd3e59154576b') in 0.1601825 seconds
+Start importing Assets/_Project/Content/UI/Kenney/buttonSquare_grey.png using Guid(b5a82803e42ad9f4cadf8dd0ec25bb78) (TextureImporter) -> (artifact id: '14fb13d7a8b34d8d231e95011b507484') in 0.1051422 seconds
+Start importing Assets/_Project/Content/UI/Kenney/checkmark.png using Guid(cd0aa6448b943f74ebff32f4a916e0f8) (TextureImporter) -> (artifact id: 'eda80ac020b6c33b2d3aae7724a1ae0c') in 0.0485893 seconds
+Start importing Assets/_Project/Content/UITheme.asset using Guid(fedf9e89d77e3504790d59fa163cd94e) (NativeFormatImporter) -> (artifact id: '47ec9720303083a48b4b7833b461aa6e') in 0.1175919 seconds
+Start importing Assets/_Project/Content/Resources/Audio/BGM.mp3 using Guid(496dba8cb4fae3540ab736d9db714764) (AudioImporter) -> (artifact id: '8305b5d8be6f3966be4b36c8c314f8f0') in 5.1363023 seconds
+Refreshing native plugins compatible for Editor in 0.01 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=4752fb7597574f04abee875c2449f620): Total: 71.276 seconds - Initiated by InitialRefreshV2(ForceSynchronousImport)
+	Summary:
+		Imports: total=9 (actual=9, local cache=0, cache server=0)
+		Asset DB Process Time: managed=30 ms, native=16053 ms
+		Asset DB Callback time: managed=459 ms, native=318 ms
+		Scripting: domain reloads=1, domain reload time=21112 ms, compile time=33237 ms, other=64 ms
+		Project Asset Count: scripts=421, non-scripts=340
+		Asset File Changes: new=25, changed=52, moved=7, deleted=0
+		Scan Filter Count: 0
+	InvokeCustomDependenciesCallbacks: 0.006ms
+	InvokePackagesCallback: 295.966ms
+	ApplyChangesToAssetFolders: 2.469ms
+	Scan: 3012.881ms
+	OnSourceAssetsModified: 49.469ms
+	CategorizeAssetsWithTransientArtifact: 915.765ms
+	ProcessAssetsWithTransientArtifactChanges: 89.797ms
+	CategorizeAssets: 61.055ms
+	ImportOutOfDateAssets: 10547.507ms (-28837.941ms without children)
+		ImportManagerImport: 6134.423ms (31.110ms without children)
+			ImportInProcess: 6103.077ms
+			UpdateCategorizedAssets: 0.237ms
+		CompileScripts: 33236.536ms
+		ReloadNativeAssets: 0.062ms
+		UnloadImportedAssets: 3.624ms
+		ReloadImportedAssets: 0.004ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.523ms
+		InitializingProgressBar: 0.024ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.003ms
+		OnDemandSchedulerStart: 10.249ms
+	PostProcessAllAssets: 436.339ms
+	Hotreload: 10.716ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.007ms
+	UnloadStreamsBegin: 4.363ms
+	PersistCurrentRevisions: 0.333ms
+	UnloadStreamsEnd: 0.004ms
+	GenerateScriptTypeHashes: 5.463ms
+	Untracked: 55849.469ms
+
+Application.AssetDatabase Initial Refresh End
+Launched and connected shader compiler UnityShaderCompiler.exe after 0.16 seconds
+Scanning for USB devices : 13.368ms
+Initializing Unity extensions:
+[MODES] ModeService[none].Initialize
+[MODES] ModeService[none].LoadModes
+[MODES] Loading mode Default (0) for mode-current-id-Bad Movie Clues
+Unloading 16 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 1637 unused Assets / (1.6 MB). Loaded Objects now: 2276.
+Memory consumption went from 105.4 MB to 103.8 MB.
+Total: 27.953600 ms (FindLiveObjects: 1.832600 ms CreateObjectMapping: 0.362700 ms MarkObjects: 20.025200 ms  DeleteObjects: 5.729000 ms)
+
+D3D11 device created for Microsoft Media Foundation video decoding.
+[Project] Loading completed in 160.840 seconds
+	Project init time: 				145.577 seconds
+		Template init time: 		0.000 seconds
+		Package Manager init time: 		18.981 seconds
+		Asset Database init time: 		1.962 seconds
+		Global illumination init time: 	0.066 seconds
+		Assemblies load time: 			41.528 seconds
+		Unity extensions init time: 	0.006 seconds
+		Asset Database refresh time: 	71.279 seconds
+	Scene opening time: 			14.139 seconds
+##utp:{"type":"ProjectInfo","version":2,"phase":"Immediate","time":1783595225918,"processId":4960,"projectLoad":160.83974310000003,"projectInit":145.5770329,"templateInit":0.0,"packageManagerInit":18.9806988,"assetDatabaseInit":1.9620558,"globalIlluminationInit":0.0659913,"assembliesLoad":41.5277505,"unityExtensionsInit":0.0060269,"assetDatabaseRefresh":71.2786733,"sceneOpening":14.1391004}
+##utp:{"type":"EditorInfo","version":2,"phase":"Immediate","time":1783595225919,"processId":4960,"editorVersion":"6000.3.19f1 (7689f4515d75)","branch":"6000.3/staging","buildType":"Release","platform":"Windows"}
+[Licensing::Client] Successfully resolved entitlement details
+[Licensing::Client] Successfully resolved entitlement details
+Running tests for ExecutionSettings with details:
+targetPlatform = 
+playerHeartbeatTimeout = 600
+filters[0] = 
+   Filter with settings:
+   testMode = EditMode
+   targetPlatform = 
+   testNames = null
+   groupNames = null
+   categoryNames = null
+   assemblyNames = null
+ignoreTests = {}
+featureFlags = null
+
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:InitializeAndExecuteRun (string[]) (at ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/Executer.cs:53)
+UnityEditor.TestTools.TestRunner.CommandLineTest.TestStarter:InitializeAndExecuteRun () (at ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/TestStarter.cs:64)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 53)
+
+[Licensing::Client] Successfully resolved entitlement details
+Start Indexing on Editor startup
+[Indexing] Starting Initial Indexing for Assets
+[UnityConnectServicesConfig] config is NOT valid, switching to default
+Created GICache directory at C:/Users/matth/AppData/LocalLow/Unity/Caches/GiCache. Took: 0.556s, timestamps: [160.954 - 161.511]
+Unloading 2 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (43.9 KB). Loaded Objects now: 2297.
+Memory consumption went from 99.1 MB to 99.0 MB.
+Total: 20.280700 ms (FindLiveObjects: 0.566500 ms CreateObjectMapping: 0.074400 ms MarkObjects: 19.611500 ms  DeleteObjects: 0.023700 ms)
+
+TrimDiskCacheJob: Current cache size 0mb
+Saving results to: C:\mattscripts\badmovieclues\TestResults-639191958062476274.xml
+Unloading 0 Unused Serialized files (Serialized files now loaded: 0)
+Unloading 0 unused Assets / (0 B). Loaded Objects now: 2297.
+Memory consumption went from 264.7 MB to 264.7 MB.
+Total: 24.229000 ms (FindLiveObjects: 0.421400 ms CreateObjectMapping: 0.073300 ms MarkObjects: 23.705800 ms  DeleteObjects: 0.024700 ms)
+
+DisplayProgressbar: Undo
+Test run completed. Exiting with code 0 (Ok). Run completed.
+UnityEngine.Debug:ExtractStackTraceNoAlloc (byte*,int,string)
+UnityEngine.StackTraceUtility:ExtractStackTrace ()
+UnityEngine.DebugLogHandler:Internal_Log (UnityEngine.LogType,UnityEngine.LogOption,string,UnityEngine.Object)
+UnityEngine.DebugLogHandler:LogFormat (UnityEngine.LogType,UnityEngine.Object,string,object[])
+UnityEngine.Logger:Log (UnityEngine.LogType,object)
+UnityEngine.Debug:Log (object)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitApplication (UnityEditor.TestTools.TestRunner.CommandLineTest.Executer/ReturnCodes,string) (at ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/Executer.cs:81)
+UnityEditor.TestTools.TestRunner.CommandLineTest.Executer:ExitIfRunIsCompleted () (at ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/Executer.cs:74)
+UnityEditor.EditorApplication:Internal_CallUpdateFunctions ()
+
+(Filename: ./Library/PackageCache/com.unity.test-framework@bd7f943e9647/UnityEditor.TestRunner/CommandLineTest/Executer.cs Line: 81)
+
+Killing ADB server in 2.3984688 seconds.
+Start importing Assets/AddressableAssetsData/AssetGroups/BadMovieClues-Images.asset using Guid(4dececc72aad12f4ea55cd084e5d1cd7) (NativeFormatImporter) -> (artifact id: '0c01d2742a72756a3f25ccd34a052186') in 0.1411681 seconds
+Refreshing native plugins compatible for Editor in 0.01 ms, found 0 plugins.
+Preloading 0 native plugins for Editor in 0.00 ms.
+Asset Pipeline Refresh (id=8149ba092fa332446a478e0e2d75f092): Total: 0.415 seconds - Initiated by StopAssetImportingV2(NoUpdateAssetOptions)
+	Summary:
+		Imports: total=1 (actual=1, local cache=0, cache server=0)
+		Asset DB Process Time: managed=0 ms, native=357 ms
+		Asset DB Callback time: managed=54 ms, native=2 ms
+		Scripting: domain reloads=0, domain reload time=0 ms, compile time=0 ms, other=0 ms
+		Project Asset Count: scripts=421, non-scripts=340
+		Asset File Changes: new=0, changed=1, moved=0, deleted=0
+		Scan Filter Count: 4
+	InvokeCustomDependenciesCallbacks: 0.005ms
+	InvokePackagesCallback: 0.002ms
+	ApplyChangesToAssetFolders: 0.439ms
+	Scan: 94.605ms
+	OnSourceAssetsModified: 11.790ms
+	CategorizeAssetsWithTransientArtifact: 0.090ms
+	ProcessAssetsWithTransientArtifactChanges: 0.583ms
+	CategorizeAssets: 1.885ms
+	ImportOutOfDateAssets: 249.976ms (7.794ms without children)
+		ImportManagerImport: 143.880ms (0.431ms without children)
+			ImportInProcess: 143.401ms
+			UpdateCategorizedAssets: 0.048ms
+		ReloadNativeAssets: 0.060ms
+		UnloadImportedAssets: 0.739ms
+		ReloadImportedAssets: 0.000ms
+		EnsureUptoDateAssetsAreRegisteredWithGuidPM: 0.213ms
+		InitializingProgressBar: 0.024ms
+		PostProcessAllAssetNotificationsAddChangedAssets: 0.004ms
+		OnDemandSchedulerStart: 97.262ms
+	PostProcessAllAssets: 43.517ms
+	Hotreload: 1.493ms
+	GatherAllCurrentPrimaryArtifactRevisions: 0.862ms
+	UnloadStreamsBegin: 0.075ms
+	PersistCurrentRevisions: 0.311ms
+	UnloadStreamsEnd: 0.004ms
+	Untracked: 9.207ms
+
+[Physics::Module] Cleanup current backend.
+[Physics::Module] Id: 0xf2b8ea05
+Input System module state changed to: ShutdownInProgress.
+Input System polling thread exited.
+Input System module state changed to: Shutdown.
+[Licensing::IpcConnector] LicenseClient-matth-6000.3.19-notifications channel disconnected successfully.
+[Licensing::IpcConnector] LicenseClient-matth-6000.3.19 channel disconnected successfully.
+Shut down.
+AcceleratorClientConnectionCallback - disconnected - :0
+Cleanup mono
+abort_threads: Failed aborting id: 0000000000001D34, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000057C, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 0000000000001D34, mono_thread_manage will ignore it
+
+abort_threads: Failed aborting id: 000000000000057C, mono_thread_manage will ignore it
+
+debugger-agent: Unable to listen on 4804
+Checking for leaked weakptr:
+  Found no leaked weakptrs.
+[Package Manager] Server process was shutdown
+##utp:{"type":"MemoryLeaks","version":2,"phase":"Immediate","time":1783595413731,"processId":4960,"allocatedMemory":11070029,"memoryLabels":[{"Default":14409},{"Permanent":15236},{"NewDelete":68219},{"Thread":4237960},{"Manager":17533},{"VertexData":8},{"Geometry":816},{"Texture":296},{"Shader":79381},{"Material":24},{"GfxDevice":57912},{"Animation":392},{"Audio":3040},{"FreeType":8},{"FontEngine":736},{"Physics":2146},{"Physics2D":16},{"Serialization":656},{"Input":14984},{"JobScheduler":33024},{"TextLib":216},{"Mono":32},{"ScriptingNativeRuntime":155060},{"BaseObject":1620272},{"Resource":1336},{"Renderer":3000},{"Transform":4685},{"File":1016},{"WebCam":616},{"Culling":32},{"Terrain":11394},{"Wind":24},{"STL":40},{"String":13375},{"DynamicArray":89928},{"HashMap":81897},{"Utility":2658918},{"Curl":2559},{"PoolAlloc":2056},{"AI":80},{"TypeTree":13861},{"ScriptManager":512},{"RuntimeInitializeOnLoadManager":64},{"SpriteAtlas":112},{"GI":7792},{"Director":8240},{"CloudService":288},{"WebRequest":808},{"VR":47994},{"SceneManager":504},{"Video":208},{"LazyScriptCache":32},{"Camera":17},{"Secure":2377},{"SerializationCache":1576},{"APIUpdating":10320},{"Subsystems":336},{"VirtualTexturing":57888},{"StaticSafetyDebugInfo":278528},{"Analytics":336},{"Hierarchy":608},{"CoreStats":13112},{"Identifiers":6480},{"Gui":96},{"EditorUtility":110661},{"VersionControl":4},{"Undo":947},{"AssetDatabase":1268234},{"EditorGi":328},{"UnityConnect":29232},{"Upm":1896},{"AssetCompliance":64},{"DrivenProperties":72},{"LocalIPC":211},{"ProfilerEditor":9746},{"CoreBusinessMetrics":2589},{"Licensing":664},{"AssetReference":32},{"IPCStream":32}]}
