@@ -39,6 +39,14 @@ namespace BadMovieClues.UI
         public async void Refresh()
         {
             Debug.Log($"[LevelSelectScreen] Refresh() - activeSelf: {gameObject.activeSelf} | activeInHierarchy: {gameObject.activeInHierarchy} | localScale: {transform.localScale} | lossyScale: {transform.lossyScale}");
+            
+            var curr = transform;
+            while (curr != null)
+            {
+                Debug.Log($"[LevelSelectScreen] Trace - '{curr.name}' | activeSelf: {curr.gameObject.activeSelf} | activeInHierarchy: {curr.gameObject.activeInHierarchy} | scale: {curr.localScale}");
+                curr = curr.parent;
+            }
+
             for (var i = 0; i < _cards.Count; i++)
             {
                 var level = _catalog.Levels[i];

@@ -45,6 +45,14 @@ namespace BadMovieClues.UI
         public void Refresh()
         {
             Debug.Log($"[SettingsScreen] Refresh() - activeSelf: {gameObject.activeSelf} | activeInHierarchy: {gameObject.activeInHierarchy} | localScale: {transform.localScale} | lossyScale: {transform.lossyScale}");
+            
+            var curr = transform;
+            while (curr != null)
+            {
+                Debug.Log($"[SettingsScreen] Trace - '{curr.name}' | activeSelf: {curr.gameObject.activeSelf} | activeInHierarchy: {curr.gameObject.activeInHierarchy} | scale: {curr.localScale}");
+                curr = curr.parent;
+            }
+
             _reducedEffectsToggle.SetIsOnWithoutNotify(_settings.ReducedEffects);
             _muteToggle.SetIsOnWithoutNotify(_settings.AudioEnabled);
             _hapticsToggle.SetIsOnWithoutNotify(_settings.HapticsEnabled);
