@@ -3,22 +3,29 @@ using UnityEngine;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Persistent ambient background: a dedicated camera (depth -10, solid
-    /// color clear) plus a soft "dust" particle drift, both parented under
-    /// AppRoot so they render behind every scene's Screen Space Overlay UI
-    /// with zero per-scene duplication. Built entirely in code (no prefab),
-    /// matching AppRoot's own no-scene-placement construction from M8.
-    /// Also the sole AudioListener in the app - the per-scene cameras that
-    /// used to carry one were removed since Screen Space Overlay UI never
-    /// needed a scene camera in the first place.
+    /// Persistent ambient background: a dedicated camera (depth -10, clear flags
+    /// solid color clear to a dark purple fallback) plus a code-generated full-screen
+    /// gradient quad (top dark purple to bottom deeper dark purple) and dual particle
+    /// systems (soft cream "dust" drift + slow gold "sparkle" layer) for parallax depth.
+    /// Built entirely in code (no prefab), parented under AppRoot to persist across scenes.
+    /// Also the sole AudioListener in the app.
     /// </summary>
     public static class AmbientDustBackground
     {
-        private static readonly Color BackgroundColor = new Color32(0x2A, 0x1A, 0x3E, 0xFF);
-        private static readonly Color ParticleColor = new Color32(0xFF, 0xE9, 0xC2, 0xFF);
-
-        public static ParticleSystem Build(Transform parent)
+        public struct DustSystems
         {
+            public ParticleSystem Dust;
+            public ParticleSystem Sparkle;
+        }
+
+        private static readonly Color BackgroundTopColor = new Color32(0x2A, 0x1A, 0x3E, 0xFF);
+        private static readonly Color BackgroundBottomColor = new Color32(0x1A, 0x0E, 0x2E, 0xFF);
+        private static readonly Color DustColor = new Color32(0xFF, 0xE9, 0xC2, 0xFF);
+        private static readonly Color SparkleColor = new Color32(0xFF, 0xD7, 0x70, 0xFF);
+
+        public static DustSystems Build(Transform parent)
+        {
+            // 1. Background Camera
             var cameraGo = new GameObject("BackgroundCamera", typeof(Camera), typeof(AudioListener));
             cameraGo.transform.SetParent(parent, false);
             cameraGo.transform.position = new Vector3(0f, 0f, -10f);
@@ -28,28 +35,83 @@ namespace BadMovieClues.UI
             camera.orthographic = true;
             camera.orthographicSize = 5f;
             camera.clearFlags = CameraClearFlags.SolidColor;
-            camera.backgroundColor = BackgroundColor;
+            camera.backgroundColor = BackgroundBottomColor;
             camera.depth = -10;
 
-            var particleGo = new GameObject("DustParticles", typeof(ParticleSystem));
-            particleGo.transform.SetParent(parent, false);
-            particleGo.transform.position = Vector3.zero;
+            // 2. Fullscreen Gradient Quad
+            var quad = GameObject.CreatePrimitive(PrimitiveType.Quad);
+            quad.name = "BackgroundGradientQuad";
+            quad.transform.SetParent(cameraGo.transform, false);
+            // Position at local Z = 15 (world Z = 5) so it renders behind the particles at Z = 0
+            quad.transform.localPosition = new Vector3(0f, 0f, 15f);
+            // Sized generously to cover portrait viewports
+            quad.transform.localScale = new Vector3(20f, 30f, 1f);
 
-            var ps = particleGo.GetComponent<ParticleSystem>();
+            var collider = quad.GetComponent<Collider>();
+            if (collider != null) UnityEngine.Object.Destroy(collider);
 
+            var meshRenderer = quad.GetComponent<MeshRenderer>();
+            var shader = Shader.Find("Sprites/Default");
+            var mat = new Material(shader);
+            var gradientTex = UITheme.CreateGradientTexture(BackgroundTopColor, BackgroundBottomColor, 256);
+            mat.mainTexture = gradientTex;
+            meshRenderer.sharedMaterial = mat;
+            meshRenderer.sortingOrder = -200;
+
+            // Load shared particle material
+            var material = Resources.Load<Material>("DustParticleMaterial");
+
+            // 3. Cream Dust Particle System
+            var dustGo = new GameObject("DustParticles", typeof(ParticleSystem));
+            dustGo.transform.SetParent(parent, false);
+            dustGo.transform.position = Vector3.zero;
+
+            var dustPs = dustGo.GetComponent<ParticleSystem>();
+            SetupDustSystem(dustPs, DustColor, 50, 10f, new ParticleSystem.MinMaxCurve(8f, 14f), new ParticleSystem.MinMaxCurve(0.1f, 0.3f), new ParticleSystem.MinMaxCurve(0.15f, 0.5f), -0.02f, 0.35f, 0.08f, 0.2f, material, -100);
+
+            // 4. Gold Sparkle Particle System
+            var sparkleGo = new GameObject("SparkleParticles", typeof(ParticleSystem));
+            sparkleGo.transform.SetParent(parent, false);
+            sparkleGo.transform.position = Vector3.zero;
+
+            var sparklePs = sparkleGo.GetComponent<ParticleSystem>();
+            SetupDustSystem(sparklePs, SparkleColor, 20, 3f, new ParticleSystem.MinMaxCurve(12f, 20f), new ParticleSystem.MinMaxCurve(0.02f, 0.08f), new ParticleSystem.MinMaxCurve(0.3f, 0.8f), -0.01f, 0.15f, 0.05f, 0.1f, material, -99);
+
+            return new DustSystems
+            {
+                Dust = dustPs,
+                Sparkle = sparklePs
+            };
+        }
+
+        private static void SetupDustSystem(
+            ParticleSystem ps,
+            Color color,
+            int maxParticles,
+            float rateOverTime,
+            ParticleSystem.MinMaxCurve lifetime,
+            ParticleSystem.MinMaxCurve speed,
+            ParticleSystem.MinMaxCurve size,
+            float gravity,
+            float maxAlpha,
+            float noiseStrength,
+            float noiseFrequency,
+            Material material,
+            int sortingOrder)
+        {
             var main = ps.main;
             main.loop = true;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.maxParticles = 50;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(8f, 14f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(0.1f, 0.3f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.15f, 0.5f);
+            main.maxParticles = maxParticles;
+            main.startLifetime = lifetime;
+            main.startSpeed = speed;
+            main.startSize = size;
             main.startRotation = new ParticleSystem.MinMaxCurve(0f, 360f * Mathf.Deg2Rad);
-            main.startColor = ParticleColor;
-            main.gravityModifier = -0.02f;
+            main.startColor = color;
+            main.gravityModifier = gravity;
 
             var emission = ps.emission;
-            emission.rateOverTime = 10f;
+            emission.rateOverTime = rateOverTime;
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Box;
@@ -60,40 +122,36 @@ namespace BadMovieClues.UI
             colorOverLifetime.enabled = true;
             var gradient = new Gradient();
             gradient.SetKeys(
-                new[] { new GradientColorKey(ParticleColor, 0f), new GradientColorKey(ParticleColor, 1f) },
-                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(0.35f, 0.5f), new GradientAlphaKey(0f, 1f) });
+                new[] { new GradientColorKey(color, 0f), new GradientColorKey(color, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(maxAlpha, 0.5f), new GradientAlphaKey(0f, 1f) });
             colorOverLifetime.color = gradient;
 
             var noise = ps.noise;
             noise.enabled = true;
-            noise.strength = 0.08f;
-            noise.frequency = 0.2f;
+            noise.strength = noiseStrength;
+            noise.frequency = noiseFrequency;
 
             var renderer = ps.GetComponent<ParticleSystemRenderer>();
-            renderer.sortingOrder = -100;
-            // A ParticleSystem added via AddComponent (not the Editor's
-            // GameObject > Effects menu) gets no material at all, which
-            // renders as Unity's magenta "missing shader" fallback - a hard
-            // solid square, not a soft blob. DustParticleMaterial is a real
-            // committed asset (Sprites/Default + a soft radial-alpha PNG)
-            // specifically so its shader survives IL2CPP build stripping -
-            // Resources.GetBuiltinResource<Material>("Default-Particle.mat")
-            // would still be at the mercy of whatever shader Unity picks
-            // internally being stripped if nothing else references it.
-            var material = Resources.Load<Material>("DustParticleMaterial");
+            renderer.sortingOrder = sortingOrder;
             if (material != null) renderer.material = material;
 
             ps.Play();
-            return ps;
         }
 
-        /// <summary>Hook for the future Settings "Reduced Effects" toggle - just
-        /// stops new particles spawning, existing ones fade out naturally.</summary>
-        public static void SetReducedEffects(ParticleSystem dustSystem, bool reduced)
+        /// <summary>Hook for the Settings "Reduced Effects" toggle - stops new particles spawning
+        /// for both dust and sparkle systems, letting existing ones fade out naturally.</summary>
+        public static void SetReducedEffects(DustSystems systems, bool reduced)
         {
-            if (dustSystem == null) return;
-            var emission = dustSystem.emission;
-            emission.enabled = !reduced;
+            if (systems.Dust != null)
+            {
+                var emission = systems.Dust.emission;
+                emission.enabled = !reduced;
+            }
+            if (systems.Sparkle != null)
+            {
+                var emission = systems.Sparkle.emission;
+                emission.enabled = !reduced;
+            }
         }
     }
 }

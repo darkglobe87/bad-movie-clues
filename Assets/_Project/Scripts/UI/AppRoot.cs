@@ -24,14 +24,22 @@ namespace BadMovieClues.UI
         public GameConfig Config { get; private set; }
         public IContentProvider ContentProvider { get; private set; }
         public IAudioService AudioService { get; private set; }
-        public ParticleSystem DustParticles { get; private set; }
+        public AmbientDustBackground.DustSystems DustParticles { get; private set; }
         public IUserSettings Settings { get; private set; }
         public IProgressService Progress { get; private set; }
         public IPurchaseService Purchases { get; private set; }
+        public IHapticsService Haptics { get; private set; }
+        public DailyPuzzleService DailyChallenge { get; private set; }
+        public RetentionService Retention { get; private set; }
+        public IAdService AdService { get; private set; }
 
         /// <summary>Set by LevelSelectScreen before navigating to Gameplay;
         /// read by GameBootstrap instead of always loading index 0.</summary>
         public int SelectedLevelIndex { get; set; }
+
+        /// <summary>True when the current Gameplay scene was launched as a
+        /// daily challenge, not a normal level-select pick.</summary>
+        public bool IsDailyChallenge { get; set; }
 
         [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
         private static void Bootstrap()
@@ -52,6 +60,10 @@ namespace BadMovieClues.UI
         {
             Instance = this;
 
+            // Mobile CPU/GPU Optimizations
+            Application.targetFrameRate = 60;
+            QualitySettings.vSyncCount = 0;
+
             Config = Resources.Load<GameConfig>("GameConfig");
             SaveService = new LocalJsonSaveService();
             Currency = new CurrencyService(SaveService, Config.StartingBalance);
@@ -60,18 +72,27 @@ namespace BadMovieClues.UI
             DustParticles = AmbientDustBackground.Build(transform);
             Progress = new ProgressService(SaveService);
             Purchases = new StubPurchaseService(Currency);
+            Haptics = new AndroidHapticsService();
+            DailyChallenge = new DailyPuzzleService(SaveService);
+            Retention = new RetentionService(SaveService);
+            AdService = new StubAdService();
 
             // Applied last since it depends on AudioService/DustParticles
             // already existing to push the loaded values onto them.
             Settings = new SettingsService(SaveService);
             ApplySettings();
             Settings.Changed += ApplySettings;
+
+            // Start BGM
+            var bgmClip = Resources.Load<AudioClip>("Audio/BGM");
+            AudioService.PlayMusic(bgmClip, 0.4f);
         }
 
         private void ApplySettings()
         {
             AudioService.Enabled = Settings.AudioEnabled;
             AmbientDustBackground.SetReducedEffects(DustParticles, Settings.ReducedEffects);
+            if (Haptics != null) Haptics.Enabled = Settings.HapticsEnabled;
         }
     }
 }

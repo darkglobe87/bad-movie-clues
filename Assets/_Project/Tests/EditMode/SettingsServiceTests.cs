@@ -6,12 +6,13 @@ namespace BadMovieClues.Tests
     public class SettingsServiceTests
     {
         [Test]
-        public void NewService_WithNoSavedData_DefaultsToAudioOnReducedEffectsOff()
+        public void NewService_WithNoSavedData_DefaultsToAudioOnReducedEffectsOffHapticsOn()
         {
             var settings = new SettingsService(new FakeSaveService());
 
             Assert.IsTrue(settings.AudioEnabled);
             Assert.IsFalse(settings.ReducedEffects);
+            Assert.IsTrue(settings.HapticsEnabled);
         }
 
         [Test]
@@ -41,6 +42,19 @@ namespace BadMovieClues.Tests
         }
 
         [Test]
+        public void SetHapticsEnabled_ChangesValue_AndFiresEvent()
+        {
+            var settings = new SettingsService(new FakeSaveService());
+            var fired = false;
+            settings.Changed += () => fired = true;
+
+            settings.HapticsEnabled = false;
+
+            Assert.IsFalse(settings.HapticsEnabled);
+            Assert.IsTrue(fired);
+        }
+
+        [Test]
         public void SettingSameValue_DoesNotFireEvent()
         {
             var settings = new SettingsService(new FakeSaveService());
@@ -59,11 +73,13 @@ namespace BadMovieClues.Tests
             var first = new SettingsService(saveService);
             first.ReducedEffects = true;
             first.AudioEnabled = false;
+            first.HapticsEnabled = false;
 
             var second = new SettingsService(saveService);
 
             Assert.IsTrue(second.ReducedEffects);
             Assert.IsFalse(second.AudioEnabled);
+            Assert.IsFalse(second.HapticsEnabled);
         }
     }
 }

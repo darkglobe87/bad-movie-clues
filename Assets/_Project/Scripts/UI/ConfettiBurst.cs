@@ -5,16 +5,8 @@ using UnityEngine.UI;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Win-celebration confetti burst. Built from plain UI Images animated
-    /// with PrimeTween, not a real Shuriken ParticleSystem like
-    /// AmbientDustBackground - deliberate deviation from the plan's literal
-    /// "ConfettiBurst particle prefab" wording: a ParticleSystem is rendered
-    /// by a camera, and a camera can never draw on top of a Screen Space
-    /// Overlay Canvas (confirmed the hard way by M9's background-behind-UI
-    /// fix - camera output is always behind Overlay canvases, never in
-    /// front). Since this needs to appear on top of the LevelCompleteScreen
-    /// overlay itself, UI-space animated Images are the only approach that
-    /// actually renders in the right place.
+    /// Confetti and coin burst celebrations using plain UI Images animated with PrimeTween.
+    /// Used in place of Shuriken ParticleSystem to allow overlay canvas sorting.
     /// </summary>
     public static class ConfettiBurst
     {
@@ -52,6 +44,44 @@ namespace BadMovieClues.UI
                 Tween.Alpha(image, endValue: 0f, duration: 0.4f, startDelay: duration - 0.4f);
 
                 Object.Destroy(pieceGo, duration + 0.1f);
+            }
+        }
+
+        /// <summary>Coins fly from a click position to the coin display icon.</summary>
+        public static void PlayCoinBurst(RectTransform parent, Vector2 fromPosition, Vector2 toPosition, int count = 12)
+        {
+            var goldColor = new Color32(0xFF, 0xC2, 0x4B, 0xFF);
+            for (var i = 0; i < count; i++)
+            {
+                var coinGo = new GameObject("CoinParticle", typeof(RectTransform), typeof(Image));
+                coinGo.transform.SetParent(parent, false);
+
+                var rt = (RectTransform)coinGo.transform;
+                var size = Random.Range(12f, 18f);
+                rt.sizeDelta = new Vector2(size, size);
+                rt.anchorMin = rt.anchorMax = new Vector2(0.5f, 0.5f);
+                rt.anchoredPosition = fromPosition;
+
+                var image = coinGo.GetComponent<Image>();
+                image.color = goldColor;
+
+                // Burst outward first
+                var angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                var burstDist = Random.Range(40f, 80f);
+                var burstOffset = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * burstDist;
+                var peakPosition = fromPosition + burstOffset;
+
+                var duration = Random.Range(0.6f, 0.9f);
+                var delay = Random.Range(0f, 0.15f);
+
+                Sequence.Create()
+                    .ChainDelay(delay)
+                    .Group(Tween.UIAnchoredPosition(rt, endValue: peakPosition, duration: 0.25f, ease: Ease.OutQuad))
+                    .Chain(Tween.UIAnchoredPosition(rt, endValue: toPosition, duration: duration - 0.25f, ease: Ease.InQuad))
+                    .Group(Tween.Scale(rt, endValue: 0.4f, duration: duration, ease: Ease.InCubic))
+                    .Group(Tween.Alpha(image, endValue: 0f, duration: 0.1f, startDelay: duration - 0.1f));
+
+                Object.Destroy(coinGo, duration + delay + 0.1f);
             }
         }
     }

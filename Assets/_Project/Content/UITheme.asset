@@ -18,6 +18,13 @@ MonoBehaviour:
   PanelSprite: {fileID: 21300000, guid: 0e69cf9a4af8b4b4589eabd4213c10da, type: 3}
   KeySprite: {fileID: 21300000, guid: 0be16376afb3aa04ba2f73df4dcb6d16, type: 3}
   TileSprite: {fileID: 21300000, guid: 0da99e2c087a6174ab21d242a35bde65, type: 3}
+  ToggleBackgroundSprite: {fileID: 0}
+  ToggleCheckmarkSprite: {fileID: 0}
+  CoinIconSprite: {fileID: 0}
+  LockIconSprite: {fileID: 0}
+  StarFilledSprite: {fileID: 0}
+  StarEmptySprite: {fileID: 0}
+  SeparatorSprite: {fileID: 0}
   HeadingFont: {fileID: 0}
   BodyFont: {fileID: 0}
   BackgroundTop: {r: 0.16470589, g: 0.101960786, b: 0.24313726, a: 1}
@@ -27,3 +34,17 @@ MonoBehaviour:
   AccentLime: {r: 0.7137255, g: 1, b: 0.23529412, a: 1}
   NeutralLight: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
   DangerRed: {r: 0.7764706, g: 0.25490198, b: 0.23137255, a: 1}
+  ButtonColor: {r: 1, g: 0.30588236, b: 0.54509807, a: 1}
+  ButtonTextColor: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
+  KeyboardKeyColor: {r: 0.3372549, g: 0.22745098, b: 0.47843137, a: 1}
+  KeyboardKeyTextColor: {r: 0.9607843, g: 0.9254902, b: 0.8509804, a: 1}
+  CardBackground: {r: 0.20784314, g: 0.1254902, b: 0.30588236, a: 1}
+  ShadowColor: {r: 0.08235294, g: 0.050980393, b: 0.13333334, a: 0.8}
+  GlowGold: {r: 1, g: 0.84313726, b: 0.4392157, a: 0.5019608}
+  SeparatorColor: {r: 0.2901961, g: 0.1882353, b: 0.41568628, a: 1}
+  StarFilled: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
+  StarEmpty: {r: 0.2901961, g: 0.1882353, b: 0.41568628, a: 1}
+  CoinTextColor: {r: 1, g: 0.84313726, b: 0.4392157, a: 1}
+  CorrectGreen: {r: 0.36078432, g: 0.8392157, b: 0.36078432, a: 1}
+  LockedOverlay: {r: 0.101960786, g: 0.0627451, b: 0.16470589, a: 0.8}
+  ButtonGradientTop: {r: 1, g: 1, b: 1, a: 0.101960786}

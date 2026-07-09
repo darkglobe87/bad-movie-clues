@@ -70,7 +70,7 @@ to `Data`'s image loading). `Editor` may reference `Data`/`Core` but nothing
 may reference `Editor` (it's excluded from player builds).
 
 ## Milestones
-16 total, M0–M15, worked in order with a verification step after each (see
+18 total, M0–M17, worked in order with a verification step after each (see
 the per-milestone "Setup status" sections below for what actually happened,
 including any bugs found along the way). Full prompt text for each lives in
 the plan file at
@@ -88,12 +88,14 @@ GitHub/mobile too.
 - M7 — Skin the gameplay HUD + click SFX
 - M8 — Persistent AppRoot + navigation skeleton
 - M9 — Dust particle ambient background
-- M10 — Main menu + splash + settings *(current)*
+- M10 — Main menu + splash + settings
 - M11 — Level select + progression
 - M12 — Store shell (stubbed)
 - M13 — Level-complete celebration (2D)
 - M14 — Remote content pipeline *(was M6 before the M6–M13 art pass was inserted ahead of it)*
 - M15 — Android build + monetization/liveops SDKs *(was M7)*
+- M16 — Daily Challenge *(current)*
+- M17 — Login Streak Rewards *(current)*
 
 M6–M13 is a Visual/Art/UX pass added after M5 shipped a playable-but-plain
 "editor vertical slice"; it bumped the original M6 (remote content) and M7
@@ -1234,3 +1236,35 @@ level number + nothing to guess.
   catalog + images from a URL, bundled catalog stays as offline
   fallback) - renamed from the original M6 before the art pass was
   inserted ahead of it.
+
+## Bug Fixes & Theming Overhaul (da357d4 & 00b50b6)
+* **Reversed Coin Animation:** Spent coin particles now flow from the balance to the button rather than the reverse.
+* **Procedural 3D Buttons:** Updated procedural rounded rects in `ProceduralIcons.cs` with 3D shaded bevels, drop shadows, and 9-slice adjustments.
+* **Color Transitions Fix:** Assigned `button.targetGraphic = image` in `UITheme.cs` so button colors tint correctly.
+* **Button Text Contrast & Order:** Changed the instantiation order in all UI screens so label text exists before styling is applied. Formatted all button labels to bold with high-contrast outlines.
+* **IL2CPP Progression Reset Fix:** Converted `ProgressData` and `SettingsData` from private structs to public serializable classes to prevent stripping and reflection errors on Android.
+* **Movie Art Resources Fallback:** Moved images to `Assets/_Project/Content/Resources/Images/` and updated `BundledContentProvider` to attempt Resources loading first, bypassing Addressables setup issues on Android.
+
+## "Campy B-Movie Cinema" 3D UI Overhaul (feature/3d-ui-overhaul)
+* **Tactile Mechanical Buttons:** Created `TactileButton.cs` which shifts the button face down in Y on click to simulate mechanical movement, hooked up automatically in `UITheme.ApplyButton`.
+* **Neon Marquee Outlines:** Created `NeonMarquee.cs` to apply outline glows and animated random flickering to headings, hooked up automatically in `UITheme.ApplyHeadingText`.
+* **Chasing Marquee Borders:** Created `MarqueeBulbBorder.cs` which spawns alternating chasing gold/white border light nodes around panels, hooked up in `UITheme.ApplyPanel`.
+* **Velvet Theatre Curtain Transition:** Replaced the flat fades in `ScreenNavigator.cs` with a split red velvet curtain transition with marquee gold borders. The left and right curtains slide closed to meet in the center and draw back to the edges on scene load.
+* **Retro TV Clue Cabinet:** Created `RetroTVFrame.cs` to frame picture hints inside a wood-grain TV bezel with static scanlines.
+* **Fancied Splash Screen:** Added a pulsing radial spotlight glow behind the title on the `SplashScreen`, made title letters flicker independently via `NeonMarquee`, and added a chasing gold marquee light border around the screen boundary.
+
+## Setup status (M16)
+- **`DailyPuzzleService`** (Progression asmdef): Pure C# service that deterministically maps the current UTC date to a movie catalog index (using a stable year/month/day math seed instead of GetHashCode to prevent cross-platform discrepancies).
+- Tracks if today's daily puzzle is already completed and stores completion status via `ISaveService`.
+- **UI Integration**: Added a "DAILY CHALLENGE" button in `MainMenuScreen` styled in gold, which disables itself with a checkmark if completed.
+- Gated reward in `GameController` so daily challenges pay `DailyChallengeRewardMultiplier` (3x, i.e., 60 coins default) on win.
+- Modified `LevelCompleteScreen` and `GameHud` to show a customized header and hide the "Next" button, forcing the user back to the menu upon completing the daily challenge.
+- Added EditMode tests in `DailyPuzzleServiceTests.cs` (all passing).
+
+## Setup status (M17)
+- **`RetentionService`** (Progression asmdef): Pure C# service implementing a strict calendar-day login streak. A gap of more than 24 hours between UTC calendar days resets the progress.
+- Tracks active consecutive streak day (1 to 7) and claims escalating rewards (10 to 100 coins default) upon the first login of each calendar day.
+- **DailyRewardModal**: A full-screen overlay showing the 7-day track. Highlighted current day with a pulsing scale effect, showing gold checkmarks for completed days, and triggering a coin burst on claim. Dismisses after adding coins to the player's balance.
+- **MainMenu Badge**: Shows a "🔥 Day X" badge in the top left when the streak is active (> Day 1).
+- Ensured "Reset Progress" in Settings does *not* reset the login streak or coin rewards, honoring the user's preference.
+- Added EditMode tests in `RetentionServiceTests.cs` (all passing).

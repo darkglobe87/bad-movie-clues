@@ -17,6 +17,8 @@ namespace BadMovieClues.Core
         private readonly IContentProvider _contentProvider;
         private readonly HintService _hintService;
         private readonly IProgressService _progressService;
+        private readonly bool _isDailyChallenge;
+        private readonly int _dailyRewardMultiplier;
         private LevelCatalog _catalog;
         private bool _usedPictureHint;
         private bool _usedCharacterHint;
@@ -39,19 +41,24 @@ namespace BadMovieClues.Core
         public event Action<LevelData, Sprite> LevelLoaded;
         public event Action Won;
         public event Action Lost;
+        public event Action LevelSkipped;
 
         public GameController(
             IContentProvider contentProvider,
             ICurrencyService currency,
             HintService hintService,
             GameConfig config,
-            IProgressService progressService)
+            IProgressService progressService,
+            bool isDailyChallenge = false,
+            int dailyRewardMultiplier = 1)
         {
             _contentProvider = contentProvider;
             Currency = currency;
             _hintService = hintService;
             Config = config;
             _progressService = progressService;
+            _isDailyChallenge = isDailyChallenge;
+            _dailyRewardMultiplier = dailyRewardMultiplier;
         }
 
         public async Awaitable LoadLevelAsync(int index)
@@ -79,12 +86,35 @@ namespace BadMovieClues.Core
                 var hintsUsed = (_usedPictureHint ? 1 : 0) + (_usedCharacterHint ? 1 : 0) + (_usedLetterHint ? 1 : 0);
                 StarsEarned = Mathf.Max(0, 3 - hintsUsed);
                 _progressService.MarkSolved(level.Id, capturedIndex, StarsEarned);
-                Currency.Add(Config.LevelCompleteReward);
+                var reward = _isDailyChallenge
+                    ? Config.LevelCompleteReward * _dailyRewardMultiplier
+                    : Config.LevelCompleteReward;
+                Currency.Add(reward);
                 Won?.Invoke();
             };
             CurrentPuzzle.Lost += () => Lost?.Invoke();
 
             LevelLoaded?.Invoke(level, sprite);
+        }
+
+        public bool TrySkipLevel(bool useCoins)
+        {
+            if (CurrentPuzzle == null)
+                throw new InvalidOperationException("No level loaded yet.");
+
+            if (_isDailyChallenge)
+                throw new InvalidOperationException("Daily challenges cannot be skipped.");
+
+            if (useCoins)
+            {
+                if (!Currency.TrySpend(Config.SkipLevelCost))
+                    return false;
+            }
+
+            StarsEarned = 0;
+            _progressService.MarkSolved(CurrentLevel.Id, CurrentIndex, 0);
+            LevelSkipped?.Invoke();
+            return true;
         }
 
         public GuessOutcome GuessLetter(char letter)

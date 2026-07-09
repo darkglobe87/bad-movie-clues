@@ -38,6 +38,10 @@ namespace BadMovieClues.Economy
 
         public async Awaitable<bool> PurchaseAsync(string packId)
         {
+            if (Application.isPlaying)
+            {
+                await Awaitable.NextFrameAsync();
+            }
             var pack = _packs.Find(p => p.Id == packId);
             if (pack.Id == null) return false;
 
@@ -47,6 +51,10 @@ namespace BadMovieClues.Economy
 
         public async Awaitable<bool> RestorePurchasesAsync()
         {
+            if (Application.isPlaying)
+            {
+                await Awaitable.NextFrameAsync();
+            }
             // Stub: no real store backend to restore from yet. Always
             // succeeds - matches the "no-op stub until the real SDK lands"
             // pattern used by every other service in this project.

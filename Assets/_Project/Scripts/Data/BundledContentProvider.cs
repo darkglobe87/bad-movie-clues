@@ -36,19 +36,40 @@ namespace BadMovieClues.Data
         {
             if (string.IsNullOrEmpty(imageKey)) return null;
 
-            // Loaded as Texture2D (not Sprite) because that's the type
-            // Addressables actually has registered for these entries; wrap it
-            // in a Sprite here rather than depend on the texture's import
-            // type, which can drift from what's cached in the entry.
-            var handle = Addressables.LoadAssetAsync<Texture2D>(imageKey);
-            await handle.Task;
+            // Try loading from Resources first
+            var resourcePath = $"Images/{imageKey}";
+            var request = Resources.LoadAsync<Sprite>(resourcePath);
+            while (!request.isDone)
+            {
+                await Awaitable.NextFrameAsync();
+            }
 
-            if (handle.Status != AsyncOperationStatus.Succeeded) return null;
+            if (request.asset is Sprite resourceSprite)
+            {
+                return resourceSprite;
+            }
 
-            var texture = handle.Result;
-            var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
-            sprite.name = imageKey;
-            return sprite;
+            try
+            {
+                // Loaded as Texture2D (not Sprite) because that's the type
+                // Addressables actually has registered for these entries; wrap it
+                // in a Sprite here rather than depend on the texture's import
+                // type, which can drift from what's cached in the entry.
+                var handle = Addressables.LoadAssetAsync<Texture2D>(imageKey);
+                await handle.Task;
+
+                if (handle.Status != AsyncOperationStatus.Succeeded) return null;
+
+                var texture = handle.Result;
+                var sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), new Vector2(0.5f, 0.5f));
+                sprite.name = imageKey;
+                return sprite;
+            }
+            catch (Exception e)
+            {
+                Debug.LogError($"[BundledContentProvider] Exception loading Addressable image '{imageKey}': {e}");
+                return null;
+            }
         }
     }
 }

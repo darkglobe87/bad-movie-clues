@@ -8,16 +8,9 @@ using UnityEngine.UI;
 namespace BadMovieClues.UI
 {
     /// <summary>
-    /// Win/lose overlay hooked to GameController's Won/Lost events via
-    /// GameHud. Built procedurally, same pattern as every other screen in
-    /// this project. Win: dim + card scale/rotate reveal with overshoot,
-    /// confetti burst, star rating, coins-earned, Next button. Lose:
-    /// gentler card reveal, reveals the answer, no confetti, Retry/Menu.
-    ///
-    /// The win/lose "sting" reuses the existing UI click sound
-    /// (click.ogg) rather than a dedicated asset - no distinct win/lose
-    /// SFX has been sourced yet, and a mismatched clip would be worse than
-    /// none; this is a clearly-labeled placeholder, not a real sting.
+    /// Win/lose overlay hooked to GameController's Won/Lost events via GameHud.
+    /// Enhanced with card visual styling, staggered star reveals, coin count-up tweens,
+    /// and a pulsing "NEW BEST!" progress badge.
     /// </summary>
     public class LevelCompleteScreen : MonoBehaviour
     {
@@ -28,8 +21,10 @@ namespace BadMovieClues.UI
         private RectTransform _dimBackground;
         private RectTransform _card;
         private TextMeshProUGUI _titleText;
-        private TextMeshProUGUI _starsText;
+        private RectTransform _starsContainer;
+        private Image[] _starImages = new Image[3];
         private TextMeshProUGUI _coinsText;
+        private TextMeshProUGUI _badgeText;
         private RectTransform _buttonRow;
 
         public void Init(UITheme theme, AudioClip stingSound, IAudioService audio)
@@ -40,14 +35,55 @@ namespace BadMovieClues.UI
             Build();
         }
 
-        public void ShowWon(string movieTitle, int stars, int coinsEarned, Action onNext)
+        public void ShowWon(string movieTitle, int stars, int coinsEarned, bool isNewBest, Action onNext, bool isDaily = false)
         {
             gameObject.SetActive(true);
             ClearButtons();
 
-            _titleText.text = movieTitle;
-            _starsText.text = new string('★', Mathf.Clamp(stars, 0, 3));
-            _coinsText.text = $"+{coinsEarned} coins";
+            _titleText.text = isDaily ? "Daily Challenge\nComplete!" : movieTitle;
+            
+            // Pop stars in with a stagger
+            for (int i = 0; i < 3; i++)
+            {
+                var starImage = _starImages[i];
+                if (_theme != null)
+                {
+                    starImage.sprite = i < stars ? _theme.GetStarFilledSprite() : _theme.GetStarEmptySprite();
+                    starImage.color = i < stars ? _theme.AccentGold : _theme.StarEmpty;
+                }
+                else
+                {
+                    starImage.color = i < stars ? Color.yellow : Color.gray;
+                }
+
+                starImage.transform.localScale = Vector3.zero;
+                Tween.Scale(starImage.transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: 0.3f + i * 0.15f);
+            }
+
+            // Coin count-up animation
+            var coinLabel = isDaily ? $"+{coinsEarned} coins (×3 Daily Bonus!)" : $"+{coinsEarned} coins";
+            _coinsText.text = "+0 coins";
+            Tween.Custom(startValue: 0f, endValue: coinsEarned, duration: 0.8f, onValueChange: val =>
+            {
+                if (isDaily)
+                    _coinsText.text = $"+{Mathf.RoundToInt(val)} coins (\u00d73 Daily Bonus!)";
+                else
+                    _coinsText.text = $"+{Mathf.RoundToInt(val)} coins";
+            }, startDelay: 0.4f);
+
+            // New best badge
+            if (isNewBest)
+            {
+                _badgeText.text = "NEW BEST";
+                _badgeText.gameObject.SetActive(true);
+                _badgeText.transform.localScale = Vector3.zero;
+                Tween.Scale(_badgeText.transform, endValue: 1f, duration: 0.4f, ease: Ease.OutBack, startDelay: 0.8f);
+                Tween.Scale(_badgeText.transform, startValue: 1f, endValue: 1.1f, duration: 0.6f, cycles: -1, cycleMode: CycleMode.Yoyo, startDelay: 1.2f);
+            }
+            else
+            {
+                _badgeText.gameObject.SetActive(false);
+            }
 
             _card.localScale = Vector3.zero;
             _card.localRotation = Quaternion.Euler(0f, 0f, -8f);
@@ -57,7 +93,12 @@ namespace BadMovieClues.UI
             ConfettiBurst.Play(_dimBackground, 60);
             _audio?.PlayOneShot(_stingSound);
 
-            BuildButton("Next", onNext);
+            // Daily challenges don't have a "Next" button — there's only one per day
+            if (!isDaily)
+            {
+                BuildButton("Next", onNext);
+            }
+            BuildButton("Menu", () => _ = ScreenNavigator.Instance.LoadScene("MainMenu", TransitionType.Fade));
         }
 
         public void ShowLost(string movieTitle, Action onRetry, Action onMenu)
@@ -66,8 +107,14 @@ namespace BadMovieClues.UI
             ClearButtons();
 
             _titleText.text = $"So close!\nIt was:\n{movieTitle}";
-            _starsText.text = "";
             _coinsText.text = "";
+            _badgeText.gameObject.SetActive(false);
+
+            // Hide stars
+            for (int i = 0; i < 3; i++)
+            {
+                _starImages[i].transform.localScale = Vector3.zero;
+            }
 
             _card.localScale = Vector3.zero;
             _card.localRotation = Quaternion.identity;
@@ -93,24 +140,71 @@ namespace BadMovieClues.UI
             _card.anchorMin = new Vector2(0.1f, 0.3f);
             _card.anchorMax = new Vector2(0.9f, 0.7f);
             _card.offsetMin = _card.offsetMax = Vector2.zero;
-            cardGo.GetComponent<Image>().color = _theme != null ? _theme.BackgroundBottom : new Color32(0x3D, 0x24, 0x59, 0xFF);
+            
+            var cardImage = cardGo.GetComponent<Image>();
+            if (_theme != null)
+            {
+                _theme.ApplyPanel(cardImage);
+            }
+            else
+            {
+                cardImage.color = new Color32(0x3D, 0x24, 0x59, 0xFF);
+            }
 
             _titleText = MainMenuScreen.UIText(_card, "", 30, FontStyles.Bold);
-            SetRect(_titleText.rectTransform, 0.05f, 0.6f, 0.95f, 0.9f);
-            if (_theme != null) _titleText.color = _theme.NeutralLight;
+            SetRect(_titleText.rectTransform, 0.05f, 0.64f, 0.95f, 0.92f);
+            if (_theme != null)
+            {
+                _titleText.color = _theme.NeutralLight;
+                if (_theme.HeadingFont != null) _titleText.font = _theme.HeadingFont;
+            }
 
-            _starsText = MainMenuScreen.UIText(_card, "", 40, FontStyles.Bold);
-            SetRect(_starsText.rectTransform, 0.05f, 0.42f, 0.95f, 0.58f);
-            if (_theme != null) _starsText.color = _theme.AccentGold;
+            // Badge text (NEW BEST)
+            _badgeText = MainMenuScreen.UIText(_card, "", 18, FontStyles.Bold);
+            SetRect(_badgeText.rectTransform, 0.05f, 0.54f, 0.95f, 0.62f);
+            _badgeText.color = _theme != null ? _theme.AccentLime : Color.green;
+            if (_theme != null && _theme.HeadingFont != null) _badgeText.font = _theme.HeadingFont;
+            _badgeText.gameObject.SetActive(false);
+
+            // Stars Layout container
+            var starsGo = new GameObject("StarsContainer", typeof(RectTransform), typeof(HorizontalLayoutGroup));
+            starsGo.transform.SetParent(_card, false);
+            _starsContainer = (RectTransform)starsGo.transform;
+            SetRect(_starsContainer, 0.2f, 0.4f, 0.8f, 0.52f);
+            
+            var starsLayout = starsGo.GetComponent<HorizontalLayoutGroup>();
+            starsLayout.spacing = 10;
+            starsLayout.childAlignment = TextAnchor.MiddleCenter;
+            starsLayout.childControlWidth = true;
+            starsLayout.childControlHeight = true;
+            starsLayout.childForceExpandWidth = false;
+            starsLayout.childForceExpandHeight = true;
+
+            for (int i = 0; i < 3; i++)
+            {
+                var starGo = new GameObject($"Star_{i}", typeof(RectTransform), typeof(Image));
+                starGo.transform.SetParent(_starsContainer, false);
+                var starImg = starGo.GetComponent<Image>();
+                var le = starGo.AddComponent<LayoutElement>();
+                le.preferredWidth = 48;
+                le.preferredHeight = 48;
+                le.minWidth = 48;
+                le.minHeight = 48;
+                _starImages[i] = starImg;
+            }
 
             _coinsText = MainMenuScreen.UIText(_card, "", 24, FontStyles.Normal);
-            SetRect(_coinsText.rectTransform, 0.05f, 0.28f, 0.95f, 0.42f);
-            if (_theme != null) _coinsText.color = _theme.NeutralLight;
+            SetRect(_coinsText.rectTransform, 0.05f, 0.26f, 0.95f, 0.38f);
+            if (_theme != null)
+            {
+                _coinsText.color = _theme.CoinTextColor;
+                if (_theme.BodyFont != null) _coinsText.font = _theme.BodyFont;
+            }
 
             var buttonRowGo = new GameObject("Buttons", typeof(RectTransform), typeof(HorizontalLayoutGroup));
             buttonRowGo.transform.SetParent(_card, false);
             _buttonRow = (RectTransform)buttonRowGo.transform;
-            SetRect(_buttonRow, 0.1f, 0.06f, 0.9f, 0.24f);
+            SetRect(_buttonRow, 0.1f, 0.06f, 0.9f, 0.22f);
             var rowLayout = buttonRowGo.GetComponent<HorizontalLayoutGroup>();
             rowLayout.spacing = 12;
             rowLayout.childControlWidth = true;
@@ -136,9 +230,9 @@ namespace BadMovieClues.UI
             var buttonGo = new GameObject($"Button_{label}", typeof(RectTransform), typeof(Image), typeof(Button));
             buttonGo.transform.SetParent(_buttonRow, false);
             var button = buttonGo.GetComponent<Button>();
-            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
-
             var text = MainMenuScreen.UIText(buttonGo.transform, label, 24, FontStyles.Normal);
+            if (_theme != null) _theme.ApplyButton(button, buttonGo.GetComponent<Image>());
+            if (_theme != null && _theme.BodyFont != null) text.font = _theme.BodyFont;
             MainMenuScreen.StretchFull(text.rectTransform);
 
             button.onClick.AddListener(() =>

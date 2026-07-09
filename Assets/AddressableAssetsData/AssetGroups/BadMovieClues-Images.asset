@@ -14,42 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Unity.Addressables.Editor::UnityEditor.AddressableAssets.Settings.AddressableAssetGroup
   m_GroupName: BadMovieClues-Images
   m_GUID: 8e8b0e1dd23031a4dae5f87f775a87ca
-  m_SerializeEntries:
-  - m_GUID: 2bad595b98a03f5458c9529155f00eb0
-    m_Address: img_lord_of_the_rings
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 44c325294493b344280d5c9661f09a48
-    m_Address: img_toy_story
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 61e242f707bec6241b921d39c5b7821f
-    m_Address: img_matrix
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 72e0d0a09c6f0a247879882a239ed010
-    m_Address: img_pulp_fiction
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: 7c53ed3688476884e86e0ca06921829f
-    m_Address: img_shrek
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: b7c5c9e7e4cd1844c827ba910f1ad13e
-    m_Address: img_jaws
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
-  - m_GUID: f6ac85959974a304c8df0f0823d4e2db
-    m_Address: img_et
-    m_ReadOnly: 0
-    m_SerializedLabels: []
-    FlaggedDuringContentUpdateRestriction: 0
+  m_SerializeEntries: []
   m_ReadOnly: 0
   m_Settings: {fileID: 11400000, guid: 166f3ab9406176a4db08344c83ab1f48, type: 2}
   m_SchemaSet:

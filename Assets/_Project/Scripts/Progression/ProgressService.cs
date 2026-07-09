@@ -89,11 +89,12 @@ namespace BadMovieClues.Progression
             Stars = _stars,
         });
 
-        private struct ProgressData
-        {
-            public string[] SolvedIds;
-            public int HighestUnlockedIndex;
-            public Dictionary<string, int> Stars;
-        }
+    [System.Serializable]
+    public class ProgressData
+    {
+        public string[] SolvedIds;
+        public int HighestUnlockedIndex;
+        public Dictionary<string, int> Stars;
+    }
     }
 }
