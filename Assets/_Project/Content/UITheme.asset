@@ -25,8 +25,8 @@ MonoBehaviour:
   StarFilledSprite: {fileID: 0}
   StarEmptySprite: {fileID: 0}
   SeparatorSprite: {fileID: 0}
-  HeadingFont: {fileID: 11400000, guid: 65c7fa6a1041dd3468e221ca7c3658b1, type: 2}
-  BodyFont: {fileID: 11400000, guid: 65c7fa6a1041dd3468e221ca7c3658b1, type: 2}
+  HeadingFont: {fileID: 0}
+  BodyFont: {fileID: 0}
   BackgroundTop: {r: 0.16470589, g: 0.101960786, b: 0.24313726, a: 1}
   BackgroundBottom: {r: 0.23921569, g: 0.14117648, b: 0.34901962, a: 1}
   AccentGold: {r: 1, g: 0.7607843, b: 0.29411766, a: 1}
